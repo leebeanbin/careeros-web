@@ -2,21 +2,23 @@
 
 > Implementation: Tailwind CSS v4 + CSS Custom Properties (`src/app/globals.css`)
 >
-> **Note:** 수치가 `[cloner]` 태그로 표시된 항목은 Linear/Discord 클로닝 후 실측값으로 교체 예정.
+> 수치 출처: linear.app 클로닝 실측값 (careeros-view 레포)
 
 ---
 
 ## Color Palette
 
+### Light Mode — App Routes `(auth)/`, `(admin)/`
+
 ```css
 :root {
-  /* Brand — 클로닝 전 기본값. linear.app 클론 후 accent 컬러 검토 */
+  /* Brand — linear.app 실측 accent: rgb(99,102,241) = #6366f1 */
   --color-primary-50:  #eef2ff;
   --color-primary-100: #e0e7ff;
   --color-primary-200: #c7d2fe;
-  --color-primary-500: #6366f1;  /* indigo-500 — professional tool feel */
-  --color-primary-600: #4f46e5;  /* hover */
-  --color-primary-700: #4338ca;  /* active / pressed */
+  --color-primary-500: #6366f1;   /* indigo-500 — linear.app 실측값과 일치 */
+  --color-primary-600: #4f46e5;   /* hover */
+  --color-primary-700: #4338ca;   /* active / pressed */
 
   /* Neutral */
   --color-gray-50:  #f9fafb;
@@ -31,31 +33,49 @@
   --color-gray-900: #111827;
 
   /* Semantic */
-  --color-success:     #16a34a;
+  --color-success:     #16a34a;   /* linear: rgb(34,197,94) → 더 진한 값 유지 */
   --color-success-bg:  #f0fdf4;
-  --color-warning:     #ca8a04;
+  --color-warning:     #ca8a04;   /* linear: rgb(234,179,8) */
   --color-warning-bg:  #fefce8;
-  --color-error:       #dc2626;
+  --color-error:       #dc2626;   /* linear: rgb(220,38,38) — 동일 */
   --color-error-bg:    #fef2f2;
   --color-info:        #6366f1;
   --color-info-bg:     #eef2ff;
 
   /* Match score */
-  --color-match-strong:    #16a34a;  /* 85+ */
+  --color-match-strong:    #16a34a;
   --color-match-strong-bg: #f0fdf4;
-  --color-match-good:      #65a30d;  /* 70–84 */
+  --color-match-good:      #65a30d;
   --color-match-good-bg:   #f7fee7;
-  --color-match-medium:    #ca8a04;  /* 50–69 */
+  --color-match-medium:    #ca8a04;
   --color-match-medium-bg: #fefce8;
-  --color-match-weak:      #9ca3af;  /* <50 */
+  --color-match-weak:      #9ca3af;
   --color-match-weak-bg:   #f9fafb;
 
-  /* Surface */
-  --color-surface:        #ffffff;   /* card / panel background */
-  --color-surface-raised: #ffffff;   /* modal, dropdown */
-  --color-surface-subtle: #f9fafb;   /* page background, sidebar */
-  --color-border:         #e5e7eb;   /* default border */
-  --color-border-subtle:  #f3f4f6;   /* dividers */
+  /* Surface (light mode) */
+  --color-surface:        #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-subtle: #f9fafb;   /* sidebar bg */
+  --color-border:         #e5e7eb;
+  --color-border-subtle:  #f3f4f6;
+}
+```
+
+### Dark Mode — Landing Page `/` only
+
+```css
+/* 전체 dark bg에 적용. (public)/page.tsx 전용 */
+.dark-landing {
+  /* linear.app 실측값 */
+  --color-dark-bg:          rgb(8, 9, 10);       /* #08090A — 페이지 배경 */
+  --color-dark-card:        rgb(15, 16, 17);     /* #0F1011 — 카드/사이드바 배경 */
+  --color-dark-panel:       rgb(13, 14, 15);     /* #0D0E0F — 내부 패널 */
+  --color-dark-text:        rgb(247, 248, 248);  /* #F7F8F8 — 주요 텍스트 */
+  --color-dark-text-muted:  rgb(138, 143, 152);  /* #8A8F98 — 보조 텍스트 */
+  --color-dark-text-link:   rgb(208, 214, 224);  /* #D0D6E0 — 링크/강조 */
+  --color-dark-border:      rgba(255, 255, 255, 0.06);
+  --color-dark-border-nav:  rgba(255, 255, 255, 0.08);
+  --color-dark-hover:       rgba(255, 255, 255, 0.05);
 }
 ```
 
@@ -65,31 +85,41 @@
 
 ```css
 :root {
-  --font-sans: 'Pretendard', 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  /* linear.app 실측: Inter Variable (가변 폰트) */
+  --font-sans: 'Inter Variable', 'Inter', 'Pretendard', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-  /* Size scale — [cloner] 실측 후 검토 */
-  --text-2xs: 0.6875rem;  /* 11px — metadata, timestamps */
-  --text-xs:  0.75rem;    /* 12px — labels, badges */
-  --text-sm:  0.8125rem;  /* 13px — sidebar nav, table rows (Linear baseline) */
-  --text-base:1rem;       /* 16px — body, form inputs */
-  --text-lg:  1.125rem;   /* 18px — card titles */
-  --text-xl:  1.25rem;    /* 20px — page headings */
-  --text-2xl: 1.5rem;     /* 24px — section headings */
-  --text-3xl: 1.875rem;   /* 30px — hero headings */
-  --text-4xl: 2.25rem;    /* 36px — landing hero */
+  /* Size scale — linear.app 실측 */
+  --text-2xs: 0.6875rem;   /* 11px — badge 내부, issue ID */
+  --text-xs:  0.75rem;     /* 12px — date(mono), 레이블 */
+  --text-sm:  0.8125rem;   /* 13px — nav link, 버튼, body small */
+  --text-base:1rem;        /* 16px — body, 설명문 */
+  --text-lg:  0.9375rem;   /* 15px — 카드 제목 H3 */
+  --text-xl:  1.25rem;     /* 20px — 페이지 헤딩 (앱) */
+  --text-2xl: 2rem;        /* 32px — 인용문 */
+  --text-3xl: 3rem;        /* 48px — H2 섹션 헤딩 */
+  --text-4xl: 4rem;        /* 64px — H1 hero (linear.app 실측) */
 
-  /* Line height */
-  --leading-tight:  1.25;
-  --leading-snug:   1.375;
-  --leading-normal: 1.5;
-  --leading-relaxed:1.625;
-
-  /* Font weight */
+  /* Font weight — Inter Variable 지원값 */
   --font-normal:  400;
   --font-medium:  500;
+  --font-510:     510;   /* linear.app 전용 semi-medium — Inter Variable만 지원 */
   --font-semibold:600;
   --font-bold:    700;
+
+  /* Line height — linear.app 실측 */
+  --leading-hero:    1;       /* H1: font-size와 동일 (64px / 64px) */
+  --leading-h2:      1.0833;  /* H2: 52px / 48px */
+  --leading-h3:      1.4667;  /* H3: 22px / 15px */
+  --leading-body:    1.625;   /* body: 26px / 16px */
+  --leading-small:   1.4286;  /* small: 20px / 14px */
+  --leading-normal:  1.5;
+
+  /* Letter spacing — linear.app 실측 */
+  --tracking-h1: -0.022em;   /* -1.408px at 64px */
+  --tracking-h2: -0.02em;    /* -0.96px at 48px */
+  --tracking-tight: -0.01em;
+  --tracking-normal: 0;
 }
 ```
 
@@ -97,19 +127,27 @@
 
 ## Spacing Scale
 
-Tailwind 기본 스케일 사용. 자주 쓰는 조합:
+```
+linear.app 실측 기준:
+- 섹션 내부 padding: 80px 상하 / 64px 좌우 (1440px 레이아웃)
+- 콘텐츠 최대 폭: 1440px
+- 앱 콘텐츠 padding: 20px 좌우 (--px-5)
+```
 
-| Token | Value | 용도 |
-|-------|-------|------|
-| `p-1` / `gap-1` | 4px | 아이콘 내부 padding |
-| `p-1.5` | 6px | 배지 padding |
-| `p-2` / `gap-2` | 8px | 인라인 요소 간격 |
-| `p-3` / `gap-3` | 12px | Nav item padding |
-| `p-4` / `gap-4` | 16px | 카드 내부 padding |
-| `p-5` | 20px | 콘텐츠 영역 padding (Linear 기준) |
-| `p-6` / `gap-6` | 24px | 페이지 섹션 패딩 |
-| `p-8` / `py-8` | 32px | 페이지 상하단 |
-| `py-16` | 64px | Empty state |
+| Token | px | 용도 |
+|-------|-----|------|
+| `p-1` | 4px | 아이콘 내부 패딩 |
+| `p-1.5` | 6px | 배지 패딩 |
+| `p-2` | 8px | 인라인 요소 |
+| `p-3` | 12px | nav item 패딩 |
+| `p-4` | 16px | 카드 내부 |
+| `p-5` | 20px | 앱 콘텐츠 영역 (Linear 앱 기준) |
+| `p-6` | 24px | 카드 header 패딩 |
+| `p-7` | 28px | 카드 하단 패딩 (linear.app: `pb-28px`) |
+| `p-8` | 32px | 모달 내부 |
+| `p-12` | 48px | 섹션 내 요소 간격 |
+| `p-16` | 64px | 랜딩 섹션 좌우 패딩 |
+| `p-20` | 80px | 랜딩 섹션 상하 패딩 |
 
 ---
 
@@ -117,13 +155,14 @@ Tailwind 기본 스케일 사용. 자주 쓰는 조합:
 
 ```css
 :root {
-  --radius-xs: 0.1875rem;  /* 3px  — 아주 작은 배지 */
-  --radius-sm: 0.25rem;    /* 4px  — 배지, 태그 */
-  --radius-md: 0.375rem;   /* 6px  — 버튼, 입력창 (Linear 기준) */
-  --radius-lg: 0.5rem;     /* 8px  — 카드 */
-  --radius-xl: 0.75rem;    /* 12px — 패널, 드롭다운 */
-  --radius-2xl:1rem;       /* 16px — 모달 */
-  --radius-full:9999px;    /* 완전한 pill — 알림 배지 */
+  /* linear.app 실측 */
+  --radius-xs:   3px;     /* 작은 배지 */
+  --radius-sm:   4px;     /* 배지, 태그, label badge */
+  --radius-md:   6px;     /* 버튼, 입력창 (앱) */
+  --radius-lg:   8px;     /* 카드, 드롭다운 */
+  --radius-xl:   12px;    /* 앱 모달, 모크업 창 상단 */
+  --radius-2xl:  16px;    /* 큰 모달 */
+  --radius-full: 9999px;  /* pill 버튼 — linear.app 버튼 전체 */
 }
 ```
 
@@ -131,37 +170,18 @@ Tailwind 기본 스케일 사용. 자주 쓰는 조합:
 
 ## Shadows
 
-Linear 수준의 극도로 절제된 섀도우. `[cloner]` 태그 항목은 실측 후 교체.
-
 ```css
 :root {
-  /* 카드, 인풋 — 거의 보이지 않는 깊이감 */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  /* linear.app은 거의 섀도우 없이 border로 구분. 앱 내 컴포넌트 기준 */
+  --shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06);
+  --shadow-md:  0 2px 4px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg:  0 4px 8px rgba(0, 0, 0, 0.06), 0 12px 32px rgba(0, 0, 0, 0.12);
+  --shadow-xl:  0 8px 16px rgba(0, 0, 0, 0.08), 0 24px 48px rgba(0, 0, 0, 0.16);
 
-  /* 카드 hover, 선택된 항목 */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04),
-               0 1px 4px rgba(0, 0, 0, 0.06);
-
-  /* 드롭다운, 팝오버 */
-  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.04),
-               0 4px 12px rgba(0, 0, 0, 0.08);   /* [cloner] linear.app 드롭다운 */
-
-  /* 모달 */
-  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.06),
-               0 12px 32px rgba(0, 0, 0, 0.12);
-
-  /* 토스트 */
-  --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.08),
-               0 24px 48px rgba(0, 0, 0, 0.16);
+  /* 랜딩 nav: 섀도우 없음, blur로 대체 */
+  --shadow-nav-blur: backdrop-filter: blur(20px);
 }
-```
-
-Tailwind 클래스로 사용:
-```tsx
-// globals.css에 등록 후
-<div className="shadow-card">    // --shadow-xs
-<div className="shadow-dropdown"> // --shadow-md
-<div className="shadow-modal">   // --shadow-lg
 ```
 
 ---
@@ -170,15 +190,16 @@ Tailwind 클래스로 사용:
 
 ```css
 :root {
-  --z-base:           0;
-  --z-raised:         1;   /* 카드 hover */
-  --z-sidebar:       10;
-  --z-topbar:        20;
-  --z-dropdown:      30;
-  --z-tooltip:       35;
-  --z-modal-backdrop:40;
-  --z-modal:         50;
-  --z-toast:         60;
+  /* linear.app nav z-index: 100 — 우리는 더 단순하게 */
+  --z-base:            0;
+  --z-raised:          1;
+  --z-sidebar:        10;
+  --z-topbar:         20;
+  --z-dropdown:       30;
+  --z-tooltip:        35;
+  --z-modal-backdrop: 40;
+  --z-modal:          50;
+  --z-toast:          60;
 }
 ```
 
@@ -188,27 +209,14 @@ Tailwind 클래스로 사용:
 
 ```css
 :root {
-  /* Duration */
-  --duration-instant: 50ms;   /* 즉각 반응 — 버튼 색상 */
-  --duration-fast:   150ms;   /* 드롭다운 열기, 탭 전환 */
-  --duration-normal: 200ms;   /* 모달 열기, 슬라이드 */
-  --duration-slow:   300ms;   /* 페이지 전환, 복잡한 애니메이션 */
+  /* linear.app 실측: nav hover opacity 0.15s ease */
+  --duration-instant: 50ms;
+  --duration-fast:    150ms;   /* 버튼 hover, nav 링크 — linear.app 실측 */
+  --duration-normal:  200ms;   /* 드롭다운, 탭 */
+  --duration-slow:    300ms;   /* 사이드바 슬라이드 */
 
-  /* Easing */
-  --ease-out:     cubic-bezier(0, 0, 0.2, 1);       /* 표준 ease-out */
-  --ease-spring:  cubic-bezier(0.16, 1, 0.3, 1);    /* ease-out-expo — 드롭다운, 모달 */
-  --ease-in:      cubic-bezier(0.4, 0, 1, 1);       /* 요소 사라질 때 */
+  --ease-out:    cubic-bezier(0, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:     cubic-bezier(0.4, 0, 1, 1);
 }
-```
-
-표준 transition 클래스 조합:
-```tsx
-// 버튼 hover
-className="transition-colors duration-[150ms] ease-out"
-
-// 드롭다운
-className="transition-[opacity,transform] duration-[200ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
-
-// 사이드바 슬라이드 (모바일)
-className="transition-transform duration-[300ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
 ```
