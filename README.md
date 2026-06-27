@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# careeros-web
+
+Frontend client for the CareerOS AI career platform.
+
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square)](https://typescriptlang.org)
+[![TanStack Query](https://img.shields.io/badge/TanStack_Query-v5-red?style=flat-square)](https://tanstack.com/query)
+
+---
+
+## Portfolio Ecosystem
+
+| Project | Role | Stack |
+|---------|------|-------|
+| **[beanllm](https://github.com/leebeanbin/beanllm)** | AI infrastructure library | Python · 8 LLM providers |
+| **[careerOS](https://github.com/leebeanbin/careerOS)** | Backend API | Spring Boot 3.3 · Java 17 |
+| **careeros-web** ← (this repo) | Frontend client | Next.js 15 · TypeScript |
+| **[dinobot](https://github.com/leebeanbin/dinobot)** | Discord bot + Notion automation | Python · FastAPI |
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 15 (App Router), TypeScript |
+| Styling | Tailwind CSS v4 |
+| Server State | TanStack Query v5 |
+| Global UI State | Zustand |
+| Forms | React Hook Form |
+| Charts | Recharts |
+
+---
+
+## Features
+
+Covers all 58 careerOS backend endpoints:
+
+- **Matches** — AI match score with 5-axis radar breakdown (skill/evidence/role/preference/freshness)
+- **Jobs** — filtered job list, save, apply-click tracking, similar jobs
+- **Resume** — upload, AI analysis, layout review, download
+- **GitHub** — connect, sync, repository list
+- **Advisor** — AI career report request and history
+- **Candidate** — career graph, job preferences
+- **Notifications** — real-time read/delete
+- **Admin** — user management, job management, AI call audit log
+
+---
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Requires careerOS backend running at `localhost:8080`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Docs
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| | |
+|-|-|
+| [wiki/](wiki/README.md) | Project knowledge base (routing, state, API client, components) |
+| [docs/design-system/](docs/design-system/tokens.md) | Color tokens, typography, component specs |
+| [docs/pages/](docs/pages/) | Per-page feature specs (all 58 endpoints) |
