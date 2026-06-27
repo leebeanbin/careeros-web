@@ -18,7 +18,7 @@ Request → 401 response
     → failure: clear cookies, redirect to /login
 ```
 
-All requests attach `Authorization: Bearer <token>` from the HTTP-only cookie. Token is read server-side in middleware and client-side via a Zustand store hydrated on mount.
+All requests use `credentials: 'include'` — the browser automatically sends HTTP-only cookies. No token access in JS. The middleware reads the JWT server-side; client-side Zustand stores only `userId` and `role` (populated from `GET /users/me` after login).
 
 ---
 

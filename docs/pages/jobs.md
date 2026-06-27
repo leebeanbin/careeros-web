@@ -33,9 +33,11 @@ Query params for `GET /jobs`:
 
 ## Layout
 
-- Filter bar at top (collapsible on mobile)
+- Filter bar at top (collapsible on mobile) — see [filter bar pattern](../design-system/patterns.md#filter-bar)
+- `roleCategory` filter options fetched from `GET /taxonomy/roles` (`['taxonomy', 'roles']`)
 - `CursorList` with `JobCard` items
 - Each `JobCard` has save/unsave toggle
+- Tabs: "전체" / "저장한 공고" — saved tab uses `GET /jobs/saved` (`['jobs', 'saved']`)
 - Infinite scroll via `IntersectionObserver`
 
 ---
@@ -43,6 +45,8 @@ Query params for `GET /jobs`:
 ## TanStack Query Cache Keys
 
 ```ts
-['jobs', filters]                   // useInfiniteQuery
-['jobs', jobId, 'saved']            // per-job saved state
+['jobs', filters]                   // useInfiniteQuery (전체 tab)
+['jobs', 'saved']                   // useInfiniteQuery (저장한 공고 tab)
+['jobs', jobId, 'saved']            // per-job saved state (optimistic toggle)
+['taxonomy', 'roles']               // filter dropdown options
 ```

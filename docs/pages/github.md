@@ -11,7 +11,8 @@ Route: `/github`
 | `POST` | `/api/v1/github/connect` | Connect GitHub (username + OAuth token) |
 | `GET` | `/api/v1/github/connect` | Get connection status |
 | `DELETE` | `/api/v1/github/connect` | Disconnect GitHub |
-| `POST` | `/api/v1/github/sync` | Trigger manual sync |
+| `POST` | `/api/v1/github/sync` | Trigger manual sync (returns syncId) |
+| `GET` | `/api/v1/github/sync/:syncId` | Poll sync job status |
 | `GET` | `/api/v1/github/repositories` | List synced repositories |
 | `GET` | `/api/v1/github/profile` | GitHub profile summary |
 
@@ -29,8 +30,9 @@ Route: `/github`
 - From `GET /github/profile`: `username`, `publicRepos`, `followers`, `bio`
 
 ### Sync
-- "동기화" button → `POST /github/sync`
-- Shows last synced timestamp
+- "동기화" button → `POST /github/sync` → returns `syncId`
+- Poll `GET /github/sync/:syncId` every 2s until `status === 'COMPLETED'`
+- Shows last synced timestamp and in-progress spinner during sync
 
 ### Repositories
 - `CursorList` of repos from `GET /github/repositories`
@@ -44,4 +46,5 @@ Route: `/github`
 ['github', 'connection']
 ['github', 'profile']
 ['github', 'repositories']
+['github', 'sync', syncId]    // polling — enabled only while sync is in progress
 ```

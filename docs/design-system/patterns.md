@@ -213,3 +213,202 @@ if (ok) mutate()
 ```
 
 Implemented as a `<ConfirmProvider>` wrapping the app root, resolves a Promise when the user clicks confirm or cancel.
+
+---
+
+## Tabs
+
+Used in: matches page (전체/숨김), admin pages (status filters).
+
+```tsx
+// Controlled by URL search param or local state
+const tabs = [
+  { label: '전체', value: 'all' },
+  { label: '숨김', value: 'hidden' },
+]
+
+<div className="flex border-b border-gray-200">
+  {tabs.map(tab => (
+    <button
+      key={tab.value}
+      onClick={() => setActive(tab.value)}
+      className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px
+        ${active === tab.value
+          ? 'border-primary-600 text-primary-600'
+          : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+    >
+      {tab.label}
+    </button>
+  ))}
+</div>
+```
+
+---
+
+## Badge (Generic)
+
+Used for: remoteType, employmentType, notification type, role, status.
+
+```tsx
+// variants: default | success | warning | error | info
+<span className="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium
+                 bg-gray-100 text-gray-700">
+  HYBRID
+</span>
+
+// variant colors
+// success  → bg-green-100 text-green-700
+// warning  → bg-amber-100 text-amber-700
+// error    → bg-red-100 text-red-700
+// info     → bg-blue-100 text-blue-700
+```
+
+`MatchScoreBadge` is a specialized badge — see [components.md](./components.md) for its score-color logic.
+
+---
+
+## Table
+
+Used in: resume list, admin user table, admin job table, AI call history.
+
+```tsx
+<div className="overflow-x-auto rounded-lg border border-gray-200">
+  <table className="min-w-full divide-y divide-gray-200 text-sm">
+    <thead className="bg-gray-50">
+      <tr>
+        <th className="px-4 py-3 text-left font-medium text-gray-500">파일명</th>
+        <th className="px-4 py-3 text-left font-medium text-gray-500">업로드일</th>
+        <th className="px-4 py-3" />
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-gray-100 bg-white">
+      {rows.map(row => (
+        <tr key={row.id} className="hover:bg-gray-50">
+          <td className="px-4 py-3 text-gray-900">{row.name}</td>
+          <td className="px-4 py-3 text-gray-500">{row.date}</td>
+          <td className="px-4 py-3 text-right">{/* actions */}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+```
+
+---
+
+## Filter Bar
+
+Used in: jobs page (6 filters), admin pages.
+
+```tsx
+// Collapsible on mobile via toggle state; always visible on lg+
+<div className="flex flex-wrap gap-3 rounded-lg border border-gray-200 bg-white p-4">
+  <input
+    placeholder="키워드 검색"
+    className="rounded-md border border-gray-300 px-3 py-1.5 text-sm w-48"
+  />
+  <select className="rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+    <option value="">직무 유형</option>
+    ...
+  </select>
+  <button onClick={clearFilters}
+    className="text-sm text-gray-500 hover:text-gray-700">
+    초기화
+  </button>
+</div>
+```
+
+Filter state lives in URL search params (`useSearchParams` + `router.push`), not component state — so filters survive page refresh and are shareable.
+
+---
+
+## Select / Multi-Select
+
+Single select:
+```tsx
+<select
+  {...register('remoteType')}
+  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm
+             focus:outline-none focus:ring-2 focus:ring-primary-500"
+>
+  <option value="">선택</option>
+  <option value="REMOTE">원격 근무</option>
+  <option value="HYBRID">하이브리드</option>
+  <option value="ON_SITE">오프사이트</option>
+</select>
+```
+
+Multi-select (e.g. `preferredCountries`): use a checkbox group, not `<select multiple>`:
+```tsx
+{options.map(opt => (
+  <label key={opt} className="flex items-center gap-2 text-sm">
+    <input type="checkbox" value={opt} {...register('preferredCountries')} />
+    {opt}
+  </label>
+))}
+```
+
+---
+
+## Progress Bar
+
+Used in: ResumeUploader (upload progress).
+
+```tsx
+<div className="h-1.5 w-full rounded-full bg-gray-200">
+  <div
+    className="h-1.5 rounded-full bg-primary-600 transition-all duration-300"
+    style={{ width: `${progress}%` }}
+  />
+</div>
+```
+
+`progress` is a number 0–100 from the `XMLHttpRequest.upload.onprogress` event (or `fetch` with a custom stream reader).
+
+---
+
+## Stats Card
+
+Used in: admin AI calls page (total calls, success rate, avg latency).
+
+```tsx
+<div className="rounded-lg border border-gray-200 bg-white p-5">
+  <p className="text-sm font-medium text-gray-500">{label}</p>
+  <p className="mt-1 text-2xl font-semibold text-gray-900">{value}</p>
+  {trend && <p className="mt-1 text-xs text-gray-400">{trend}</p>}
+</div>
+```
+
+Render 3 per row with `grid grid-cols-3 gap-4`.
+
+---
+
+## User Dropdown (Topbar)
+
+Triggered by avatar click in the Topbar.
+
+```tsx
+// Simple absolute-positioned panel — no external library
+<div className="relative">
+  <button onClick={toggle}>
+    <img src={avatarUrl} className="h-8 w-8 rounded-full" />
+  </button>
+  {open && (
+    <div className="absolute right-0 mt-2 w-44 rounded-lg border border-gray-200
+                    bg-white shadow-lg z-50">
+      <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
+        {userName}
+      </div>
+      <Link href="/settings" className="block px-4 py-2 text-sm hover:bg-gray-50">
+        설정
+      </Link>
+      <button onClick={logout}
+        className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50">
+        로그아웃
+      </button>
+    </div>
+  )}
+</div>
+```
+
+Logout: `POST /api/v1/auth/logout` → clear cookies → redirect `/login`. Close dropdown on outside click (`useEffect` with `mousedown` listener).

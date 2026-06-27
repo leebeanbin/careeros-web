@@ -47,6 +47,7 @@ sequenceDiagram
 src/
 ├── app/
 │   ├── (public)/
+│   │   ├── page.tsx              ← / (landing page)
 │   │   ├── login/page.tsx
 │   │   └── signup/page.tsx
 │   ├── (auth)/

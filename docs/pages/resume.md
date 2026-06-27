@@ -11,6 +11,7 @@ Route: `/resume`
 | `POST` | `/api/v1/resumes` | Upload resume (multipart/form-data) |
 | `GET` | `/api/v1/resumes` | List all resumes |
 | `GET` | `/api/v1/resumes/active` | Get active resume |
+| `GET` | `/api/v1/resumes/:resumeId` | Get single resume metadata |
 | `DELETE` | `/api/v1/resumes/:resumeId` | Delete resume |
 | `GET` | `/api/v1/resumes/:resumeId/download` | Download PDF |
 | `GET` | `/api/v1/resumes/:resumeId/analysis` | AI analysis result |
@@ -43,6 +44,7 @@ Route: `/resume`
 ```ts
 ['resumes']
 ['resumes', 'active']
+['resumes', resumeId]
 ['resumes', resumeId, 'analysis']
 ['resumes', resumeId, 'layout-review']
 ```

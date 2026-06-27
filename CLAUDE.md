@@ -5,6 +5,7 @@ Wiki-first workflow: load the right context before changing code.
 Before writing any code, modifying documentation, or running tests, load the relevant wiki pages:
 
 - **Wiki Index:** [wiki/README.md](wiki/README.md)
+- **Architecture:** [wiki/architecture.md](wiki/architecture.md)
 - **Routing:** [wiki/routing.md](wiki/routing.md)
 - **State Management:** [wiki/state.md](wiki/state.md)
 - **API Client:** [wiki/api-client.md](wiki/api-client.md)
@@ -38,4 +39,10 @@ careerOS REST API at `http://localhost:8080` (dev). All 58 endpoints documented 
 
 ## Design
 
-Tailwind CSS v4 utility classes only. CSS custom property tokens in [docs/design-system/tokens.md](docs/design-system/tokens.md). No custom design system library.
+Tailwind CSS v4 utility classes only. No custom design system library.
+
+| Doc | Content |
+|-----|---------|
+| [tokens.md](docs/design-system/tokens.md) | Color, typography, border-radius tokens |
+| [layout.md](docs/design-system/layout.md) | Page shell, sidebar, responsive breakpoints |
+| [patterns.md](docs/design-system/patterns.md) | Forms, buttons, toast, tabs, table, modal, badge, filter bar |

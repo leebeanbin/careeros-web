@@ -19,7 +19,7 @@
 
 ```ts
 // Auth
-queryKey: ['me']                                    // GET /users/me
+queryKey: ['users', 'me']                           // GET /users/me
 
 // Jobs
 queryKey: ['jobs', filters]                         // GET /jobs (with all filter params)
@@ -34,18 +34,20 @@ queryKey: ['matches', matchId]                      // GET /matches/:matchId
 
 // Resume
 queryKey: ['resumes']                               // GET /resumes
+queryKey: ['resumes', 'active']                     // GET /resumes/active
 queryKey: ['resumes', resumeId]                     // GET /resumes/:resumeId
 queryKey: ['resumes', resumeId, 'analysis']         // GET /resumes/:resumeId/analysis
 queryKey: ['resumes', resumeId, 'layout-review']    // GET /resumes/:resumeId/layout-review
 
 // GitHub
+queryKey: ['github', 'connection']                  // GET /github/connect
 queryKey: ['github', 'profile']                     // GET /github/profile
-queryKey: ['github', 'repositories']                // GET /github/repositories
-queryKey: ['github', 'sync', syncId]                // GET /github/sync/:syncId
+queryKey: ['github', 'repositories']               // GET /github/repositories
+queryKey: ['github', 'sync', syncId]                // GET /github/sync/:syncId (poll sync job)
 
 // Candidate
-queryKey: ['candidate', 'graph']                    // GET /candidates/me/graph
-queryKey: ['candidate', 'preferences']              // GET /candidates/me/preferences
+queryKey: ['candidates', 'me', 'graph']             // GET /candidates/me/graph
+queryKey: ['candidates', 'me', 'preferences']       // GET /candidates/me/preferences
 
 // Advisor
 queryKey: ['advisor', 'dashboard']                  // GET /advisor/dashboard
@@ -62,6 +64,7 @@ queryKey: ['taxonomy', 'roles']                     // GET /taxonomy/roles
 // Admin
 queryKey: ['admin', 'users', adminUserFilters]      // GET /users (admin)
 queryKey: ['admin', 'users', userId]                // GET /users/:userId
+queryKey: ['admin', 'jobs']                         // GET /jobs/admin
 queryKey: ['admin', 'ai-calls', aiFilters]          // GET /admin/ai-calls
 queryKey: ['admin', 'ai-calls', 'stats']            // GET /admin/ai-calls/stats
 ```
@@ -74,11 +77,11 @@ queryKey: ['admin', 'ai-calls', 'stats']            // GET /admin/ai-calls/stats
 
 ```ts
 // src/stores/authStore.ts
+// JWT is HTTP-only — never store the raw token in JS. Populate from GET /users/me after login.
 interface AuthStore {
   userId: number | null
   role: 'USER' | 'ADMIN' | null
-  accessToken: string | null
-  setAuth: (userId: number, role: string, token: string) => void
+  setAuth: (userId: number, role: 'USER' | 'ADMIN') => void
   clear: () => void
 }
 

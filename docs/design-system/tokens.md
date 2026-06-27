@@ -58,7 +58,22 @@
 
 ---
 
-## Spacing & Border Radius
+## Spacing Scale
+
+Use Tailwind's default spacing scale directly — no custom CSS variables needed.
+
+| Token | Value | Common use |
+|-------|-------|-----------|
+| `gap-1` / `p-1` | 4px | Tight icon padding |
+| `gap-2` / `p-2` | 8px | Inline element spacing |
+| `gap-4` / `p-4` | 16px | Card inner padding |
+| `gap-6` / `p-6` | 24px | Page section padding |
+| `gap-8` / `py-8` | 32px | Page top/bottom padding |
+| `gap-16` / `py-16` | 64px | Empty state vertical padding |
+
+---
+
+## Border Radius
 
 ```css
 :root {

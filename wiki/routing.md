@@ -26,15 +26,21 @@ src/app/
 │   ├── resume/page.tsx       → /resume
 │   ├── github/page.tsx       → /github
 │   ├── candidate/page.tsx    → /candidate
-│   ├── advisor/page.tsx      → /advisor
+│   ├── advisor/
+│   │   ├── page.tsx          → /advisor
+│   │   └── reports/[reportId]/page.tsx → /advisor/reports/:reportId
 │   ├── notifications/page.tsx → /notifications
 │   └── settings/page.tsx     → /settings
 │
 ├── (admin)/                  → ADMIN role required
-│   └── admin/page.tsx        → /admin
+│   └── admin/
+│       ├── page.tsx          → /admin          (redirects to /admin/users)
+│       ├── users/page.tsx    → /admin/users
+│       ├── jobs/page.tsx     → /admin/jobs
+│       └── ai-calls/page.tsx → /admin/ai-calls
 │
 └── api/
-    └── auth/callback/route.ts → /api/auth/callback
+    └── auth/callback/route.ts → /api/auth/callback  (GitHub Connect OAuth code exchange)
 ```
 
 ---
@@ -49,12 +55,24 @@ src/app/
 
 ---
 
-## OAuth Callback Flow
+## Two OAuth Flows
 
+### 1. GitHub Login (authentication)
+Handled entirely by the careerOS backend — no Next.js callback route needed.
 ```
-GitHub Authorize → /api/auth/callback?code=xxx
-  └── POST /api/v1/github/connect { mode: "oauth", code }
-        └── On Success → redirect to /github
+"GitHub으로 로그인" button → GET /api/v1/auth/oauth/github
+  → GitHub OAuth consent
+  → careerOS backend sets JWT cookies
+  → redirect to /dashboard
+```
+
+### 2. GitHub Connect (link account after login)
+Uses the Next.js API route to exchange the OAuth code.
+```
+"OAuth 연결" button on /github → GitHub OAuth consent
+  → GET /api/auth/callback?code=xxx
+    └── POST /api/v1/github/connect { mode: "oauth", code }
+          → On Success → redirect to /github
 ```
 
 ---
