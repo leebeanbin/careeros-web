@@ -34,6 +34,7 @@ careeros-web talks exclusively to the careerOS REST API (`localhost:8080` in dev
 
 | Page | Content |
 |------|---------|
+| [architecture.md](architecture.md) | Layer map, file structure, auth flow, error + loading strategy |
 | [routing.md](routing.md) | Route structure, middleware auth, OAuth callback |
 | [state.md](state.md) | TanStack Query cache keys, Zustand stores, cursor pagination |
 | [api-client.md](api-client.md) | Fetch wrapper, token refresh flow, domain file map |
@@ -43,8 +44,10 @@ careeros-web talks exclusively to the careerOS REST API (`localhost:8080` in dev
 
 | Page | Content |
 |------|---------|
-| [tokens](../docs/design-system/tokens.md) | Color palette, typography, spacing |
-| [components spec](../docs/design-system/components.md) | Component visual specs |
+| [tokens](../docs/design-system/tokens.md) | Color palette, typography, spacing tokens |
+| [layout](../docs/design-system/layout.md) | Page shell, sidebar nav, responsive breakpoints, content widths |
+| [patterns](../docs/design-system/patterns.md) | Forms, buttons, toast, loading, empty/error states, modal |
+| [components spec](../docs/design-system/components.md) | 5 core component props and visual specs |
 
 ## Page Specs
 
