@@ -1,5 +1,5 @@
 import { apiFetch } from './client'
-import type { UserDto, AiCallDto, AiCallStats, CursorPage } from './types'
+import type { UserDto, AiCallDto, AiCallStats, AdminJobDto, CursorPage } from './types'
 
 export const listUsers = (params?: { status?: string; keyword?: string; cursor?: string }) =>
   apiFetch<CursorPage<UserDto>>(`/users?${new URLSearchParams(
@@ -22,3 +22,11 @@ export const listAiCalls = (params?: { useCase?: string; success?: boolean; curs
 
 export const getAiCallStats = () =>
   apiFetch<AiCallStats>('/admin/ai-calls/stats')
+
+export const listAdminJobs = (params?: { cursor?: string }) =>
+  apiFetch<CursorPage<AdminJobDto>>(`/admin/jobs?${new URLSearchParams(
+    Object.fromEntries(Object.entries(params ?? {}).filter(([, v]) => v != null).map(([k, v]) => [k, String(v)]))
+  )}`)
+
+export const updateJobStatus = (jobId: number, status: string) =>
+  apiFetch<void>(`/admin/jobs/${jobId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) })
