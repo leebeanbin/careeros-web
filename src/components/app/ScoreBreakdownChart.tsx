@@ -1,0 +1,38 @@
+'use client'
+import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts'
+
+interface ScoreBreakdownChartProps {
+  skillScore: number
+  evidenceScore: number
+  roleScore: number
+  preferenceScore: number
+  freshnessScore: number
+}
+
+export default function ScoreBreakdownChart(props: ScoreBreakdownChartProps) {
+  const data = [
+    { axis: '기술 스택', value: props.skillScore },
+    { axis: '경력 증거', value: props.evidenceScore },
+    { axis: '역할 적합', value: props.roleScore },
+    { axis: '선호도', value: props.preferenceScore },
+    { axis: '최신성', value: props.freshnessScore },
+  ]
+
+  return (
+    <ResponsiveContainer width="100%" height={280}>
+      <RadarChart data={data} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
+        <PolarGrid stroke="#e5e7eb" />
+        <PolarAngleAxis dataKey="axis" tick={{ fontSize: 12, fill: '#6b7280' }} />
+        <Radar
+          dataKey="value"
+          name="점수"
+          fill="#6366f1"
+          fillOpacity={0.15}
+          stroke="#6366f1"
+          strokeWidth={2}
+          dot={{ r: 3, fill: '#6366f1' }}
+        />
+      </RadarChart>
+    </ResponsiveContainer>
+  )
+}
