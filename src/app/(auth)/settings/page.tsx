@@ -9,12 +9,15 @@ import type { UpdateUserDto } from '@/lib/api/types'
 import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
 
-const surface: React.CSSProperties = {
-  backgroundColor: 'rgb(13,14,15)',
-  border: '1px solid rgba(255,255,255,0.06)',
-  borderRadius: '8px',
-  padding: '20px',
-}
+type Section = 'profile' | 'danger'
+
+const SETTINGS_NAV = [
+  { group: '계정', items: [
+    { id: 'profile' as Section, label: '프로필' },
+    { id: 'danger' as Section, label: '계정 삭제' },
+  ]},
+]
+
 const inputStyle: React.CSSProperties = {
   height: '36px', width: '100%',
   border: '1px solid rgba(255,255,255,0.1)',
@@ -36,6 +39,7 @@ export default function SettingsPage() {
   const { clear } = useAuthStore()
   const { add } = useToastStore()
   const [showDelete, setShowDelete] = useState(false)
+  const [activeSection, setActiveSection] = useState<Section>('profile')
 
   const { data: me } = useQuery({ queryKey: ['users', 'me'], queryFn: getMe })
 
@@ -58,81 +62,131 @@ export default function SettingsPage() {
     onError: () => add('error', '탈퇴에 실패했습니다.'),
   })
 
+  const sectionTitle = activeSection === 'profile' ? '프로필' : '계정 삭제'
+
   return (
-    <div style={{ maxWidth: '640px', margin: '0 auto' }}>
-      {/* Sticky header */}
+    <div style={{ display: 'flex', height: '100%', backgroundColor: 'rgb(8,9,10)' }}>
+      {/* Left nav */}
       <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        height: '48px', display: 'flex', alignItems: 'center',
-        padding: '0 24px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        backgroundColor: 'rgb(8,9,10)',
+        width: '200px', flexShrink: 0,
+        borderRight: '1px solid rgba(255,255,255,0.06)',
+        padding: '16px 8px', overflow: 'auto',
       }}>
-        <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>설정</span>
+        {SETTINGS_NAV.map(({ group, items }) => (
+          <div key={group} style={{ marginBottom: '20px' }}>
+            <div style={{
+              fontSize: '11px', fontWeight: 500, color: 'rgb(138,143,152)',
+              padding: '4px 8px 6px', textTransform: 'uppercase', letterSpacing: '0.04em',
+            }}>
+              {group}
+            </div>
+            {items.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setActiveSection(item.id)}
+                style={{
+                  display: 'block', width: '100%', textAlign: 'left',
+                  fontSize: '13px', padding: '6px 10px', borderRadius: '5px',
+                  border: 'none', cursor: 'pointer',
+                  backgroundColor: activeSection === item.id ? 'rgba(255,255,255,0.07)' : 'transparent',
+                  color: activeSection === item.id ? 'rgb(247,248,248)' : 'rgb(138,143,152)',
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        ))}
       </div>
 
-      <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {/* Profile form */}
-        <form onSubmit={handleSubmit((d) => save(d))} style={surface}>
-          <div style={{
-            fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.4)',
-            textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px',
-          }}>
-            프로필
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div>
-              <label style={labelStyle}>이름</label>
-              <input {...register('name', { required: true })} style={inputStyle} />
-            </div>
-            <div>
-              <label style={labelStyle}>이메일</label>
-              <input {...register('email', { required: true })} type="email" style={inputStyle} />
-            </div>
-          </div>
-          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-            <button
-              type="submit"
-              disabled={isSubmitting || !isDirty}
-              style={{
-                height: '32px', padding: '0 14px',
-                backgroundColor: isSubmitting || !isDirty ? 'rgba(229,229,230,0.3)' : 'rgb(229,229,230)',
-                color: 'rgb(8,9,10)', fontWeight: 510,
-                fontSize: '13px', border: 'none',
-                borderRadius: '6px',
-                cursor: isSubmitting || !isDirty ? 'not-allowed' : 'pointer',
-              }}
-            >
-              {isSubmitting ? '저장 중...' : '저장'}
-            </button>
-          </div>
-        </form>
-
-        {/* Danger zone */}
+      {/* Right content */}
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        {/* Sticky header */}
         <div style={{
-          border: '1px solid rgba(255,99,99,0.2)',
-          borderRadius: '8px',
-          backgroundColor: 'rgba(255,0,0,0.03)',
-          padding: '20px',
+          position: 'sticky', top: 0, zIndex: 10,
+          height: '48px', display: 'flex', alignItems: 'center',
+          padding: '0 32px',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          backgroundColor: 'rgb(8,9,10)',
         }}>
-          <div style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(255,99,99,0.7)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
-            위험 구역
-          </div>
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '14px', lineHeight: 1.5 }}>
-            계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다.
-          </p>
-          <button
-            onClick={() => setShowDelete(true)}
-            style={{
-              height: '30px', padding: '0 12px',
-              border: '1px solid rgba(255,99,99,0.3)',
-              color: 'rgba(255,99,99,0.8)',
-              backgroundColor: 'transparent',
-              borderRadius: '6px', fontSize: '13px', cursor: 'pointer',
-            }}
-          >
-            계정 삭제
-          </button>
+          <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>
+            {sectionTitle}
+          </span>
+        </div>
+
+        <div style={{ padding: '32px' }}>
+          {activeSection === 'profile' && (
+            <form onSubmit={handleSubmit((d) => save(d))} style={{
+              backgroundColor: 'rgb(13,14,15)',
+              border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: '8px', padding: '20px',
+            }}>
+              <div style={{
+                fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.4)',
+                textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px',
+              }}>
+                프로필
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
+                  <label style={labelStyle}>이름</label>
+                  <input {...register('name', { required: true })} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>이메일</label>
+                  <input {...register('email', { required: true })} type="email" style={inputStyle} />
+                </div>
+              </div>
+              <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !isDirty}
+                  style={{
+                    height: '32px', padding: '0 14px',
+                    backgroundColor: isSubmitting || !isDirty ? 'rgba(229,229,230,0.3)' : 'rgb(229,229,230)',
+                    color: 'rgb(8,9,10)', fontWeight: 510,
+                    fontSize: '13px', border: 'none',
+                    borderRadius: '6px',
+                    cursor: isSubmitting || !isDirty ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {isSubmitting ? '저장 중...' : '저장'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {activeSection === 'danger' && (
+            <div style={{
+              border: '1px solid rgba(255,99,99,0.2)',
+              borderRadius: '8px',
+              backgroundColor: 'rgba(255,0,0,0.03)',
+              padding: '20px',
+            }}>
+              <div style={{
+                fontSize: '11px', fontWeight: 500, color: 'rgba(255,99,99,0.7)',
+                textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px',
+              }}>
+                위험 구역
+              </div>
+              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '14px', lineHeight: 1.5 }}>
+                계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다.
+              </p>
+              <button
+                onClick={() => setShowDelete(true)}
+                style={{
+                  height: '30px', padding: '0 12px',
+                  border: '1px solid rgba(255,99,99,0.3)',
+                  color: 'rgba(255,99,99,0.8)',
+                  backgroundColor: 'transparent',
+                  borderRadius: '6px', fontSize: '13px', cursor: 'pointer',
+                }}
+              >
+                계정 삭제
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,12 +1,21 @@
 'use client'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { listMatches, hideMatch } from '@/lib/api/matches'
 import type { MatchDto } from '@/lib/api/types'
 import CursorList from '@/components/ui/CursorList'
 import { MatchStatusIcon } from '@/components/app/MatchStatusIcon'
+import { GroupHeader } from '@/components/app/GroupHeader'
+import { FilterPill } from '@/components/app/FilterPill'
 import { useToastStore } from '@/stores/toastStore'
+
+const SCORE_GROUPS = [
+  { label: '우수 매칭', min: 80, max: 100 },
+  { label: '양호 매칭', min: 65, max: 79 },
+  { label: '보통 매칭', min: 50, max: 64 },
+  { label: '낮은 매칭', min: 0,  max: 49 },
+]
 
 function ScoreBadge({ score }: { score: number }) {
   const [bg, color] =
@@ -24,6 +33,46 @@ function ScoreBadge({ score }: { score: number }) {
   )
 }
 
+function MatchRow({ m, showHide, onHide }: { m: MatchDto; showHide: boolean; onHide: (id: number) => void }) {
+  return (
+    <div
+      style={{
+        display: 'flex', alignItems: 'center', gap: '8px',
+        height: '36px', padding: '0 16px',
+        borderBottom: '1px solid rgba(255,255,255,0.03)',
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+    >
+      <MatchStatusIcon score={m.totalScore} size={14} />
+      <Link href={`/matches/${m.matchId}`} style={{
+        flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
+        justifyContent: 'center', gap: '1px', textDecoration: 'none',
+      }}>
+        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {m.job.title}
+        </span>
+        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>{m.job.company}</span>
+      </Link>
+      <ScoreBadge score={m.totalScore} />
+      {showHide && (
+        <button
+          onClick={() => onHide(m.matchId)}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: '12px', color: 'rgba(255,255,255,0.3)',
+            padding: '4px 6px', borderRadius: '4px', flexShrink: 0,
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,99,99,0.7)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
+        >
+          숨기기
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function MatchesPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -32,6 +81,12 @@ export default function MatchesPage() {
 
   const tab = searchParams.get('tab') ?? 'all'
   const hideHidden = tab === 'all'
+
+  const { data: allMatches } = useQuery({
+    queryKey: ['matches', { all: true }],
+    queryFn: () => listMatches({ size: 50, hideHidden: true }),
+    enabled: tab === 'all',
+  })
 
   const { mutate: hide } = useMutation({
     mutationFn: (matchId: number) => hideMatch(matchId),
@@ -71,11 +126,12 @@ export default function MatchesPage() {
       {/* Sticky header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
-        display: 'flex', alignItems: 'center', gap: '0',
-        height: '48px', padding: '0 24px',
+        display: 'flex', alignItems: 'center',
+        height: '48px', padding: '0 16px',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
         backgroundColor: 'rgb(8,9,10)',
       }}>
+        {/* Tabs */}
         {[{ value: 'all', label: '전체' }, { value: 'hidden', label: '숨김' }].map((t) => (
           <button
             key={t.value}
@@ -92,54 +148,56 @@ export default function MatchesPage() {
             {t.label}
           </button>
         ))}
+        <div style={{ flex: 1 }} />
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <FilterPill label="필터" />
+          <FilterPill label="그룹" />
+          <FilterPill label="보기" />
+        </div>
       </div>
 
-      {/* List */}
-      <div style={{ padding: '0 24px 24px' }}>
-        <CursorList<MatchDto>
-          queryKey={['matches', { hideHidden }]}
-          fetcher={(cursor) => listMatches({ cursor, size: 30, hideHidden })}
-          className=""
-          renderItem={(m, i) => (
-            <div
-              key={m.matchId}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '12px',
-                height: '44px', padding: '0 4px',
-                borderBottom: '1px solid rgba(255,255,255,0.04)',
-              }}
-            >
-              <MatchStatusIcon score={m.totalScore} size={14} />
-              <Link href={`/matches/${m.matchId}`} style={{
-                flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
-                justifyContent: 'center', gap: '1px', textDecoration: 'none',
-              }}>
-                <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {m.job.title}
-                </span>
-                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>{m.job.company}</span>
-              </Link>
-              <ScoreBadge score={m.totalScore} />
-              {tab === 'all' && (
-                <button
-                  onClick={() => hide(m.matchId)}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    fontSize: '12px', color: 'rgba(255,255,255,0.3)',
-                    padding: '4px 6px', borderRadius: '4px', flexShrink: 0,
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,99,99,0.7)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
-                >
-                  숨기기
-                </button>
-              )}
+      {/* All tab: grouped by score */}
+      {tab === 'all' ? (
+        <div>
+          {SCORE_GROUPS.map((g) => {
+            const items = (allMatches?.content ?? []).filter(
+              (m) => m.totalScore >= g.min && m.totalScore <= g.max,
+            )
+            if (!items.length) return null
+            return (
+              <div key={g.label}>
+                <GroupHeader label={g.label} count={items.length} />
+                {items.map((m) => (
+                  <MatchRow key={m.matchId} m={m} showHide onHide={(id) => hide(id)} />
+                ))}
+              </div>
+            )
+          })}
+          {!allMatches && (
+            <div style={{ padding: '32px', textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
+              로딩 중...
             </div>
           )}
-          emptyTitle={tab === 'hidden' ? '숨긴 매칭이 없습니다' : '매칭된 공고가 없습니다'}
-          emptyDescription={tab === 'all' ? '이력서를 업로드하면 매칭이 시작됩니다.' : undefined}
-        />
-      </div>
+          {allMatches && !allMatches.content.length && (
+            <div style={{ padding: '32px', textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
+              매칭된 공고가 없습니다
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Hidden tab: cursor list */
+        <div style={{ padding: '0' }}>
+          <CursorList<MatchDto>
+            queryKey={['matches', { hideHidden: false }]}
+            fetcher={(cursor) => listMatches({ cursor, size: 30, hideHidden: false })}
+            className=""
+            renderItem={(m) => (
+              <MatchRow key={m.matchId} m={m} showHide={false} onHide={() => {}} />
+            )}
+            emptyTitle="숨긴 매칭이 없습니다"
+          />
+        </div>
+      )}
     </div>
   )
 }

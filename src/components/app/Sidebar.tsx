@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { listNotifications } from '@/lib/api/notifications'
+import { getMe } from '@/lib/api/users'
 import type { CSSProperties, ReactNode } from 'react'
 
 // ── Icons ───────────────────────────────────────────────────
@@ -52,6 +53,22 @@ function GraphIcon() {
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
       <polygon points="7.5,1.5 13.5,5 13.5,10 7.5,13.5 1.5,10 1.5,5" stroke="currentColor" strokeWidth="1.2"/>
       <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.2"/>
+    </svg>
+  )
+}
+function RoadmapIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <path d="M2 13L7 3L12 8L14 2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+function CyclesIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <path d="M2.5 7A4.5 4.5 0 0 1 7 2.5v0a4.5 4.5 0 0 1 4.5 4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+      <path d="M11.5 7A4.5 4.5 0 0 1 7 11.5v0a4.5 4.5 0 0 1-4.5-4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+      <polyline points="9.5,2 11.5,4.5 9,4.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   )
 }
@@ -145,6 +162,8 @@ const NAV_MAIN = [
   { href: '/resume',     label: '이력서',      icon: <ResumeIcon /> },
   { href: '/github',     label: 'GitHub',      icon: <GitHubIcon /> },
   { href: '/candidate',  label: '경력 그래프', icon: <GraphIcon /> },
+  { href: '/roadmap',    label: '로드맵',      icon: <RoadmapIcon /> },
+  { href: '/cycles',     label: '지원 사이클', icon: <CyclesIcon /> },
   { href: '/advisor',    label: 'AI 어드바이저', icon: <AdvisorIcon /> },
 ]
 
@@ -163,12 +182,18 @@ export default function SidebarContent() {
   })
   const unreadCount = (notifPage as { totalCount?: number } | undefined)?.totalCount ?? 0
 
+  const { data: me } = useQuery({
+    queryKey: ['users', 'me'],
+    queryFn: getMe,
+    staleTime: 300_000,
+  })
+
   const isActive = (href: string) =>
     href === '/dashboard' ? pathname === href : pathname.startsWith(href)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      {/* Logo row */}
+      {/* Logo row — two-line + ··· button (careeros-view AppSidebar pattern) */}
       <div style={{
         height: '48px',
         display: 'flex',
@@ -177,17 +202,38 @@ export default function SidebarContent() {
         padding: '0 12px',
         flexShrink: 0,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
           <div style={{
             width: '20px', height: '20px', borderRadius: '4px',
             backgroundColor: 'rgb(99,102,241)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '11px', fontWeight: 700, color: 'white', flexShrink: 0,
           }}>C</div>
-          <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.9)' }}>
-            CareerOS
-          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
+            <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.9)', lineHeight: 1 }}>
+              CareerOS
+            </span>
+            {me?.name && (
+              <span style={{ fontSize: '11px', fontWeight: 400, color: 'rgba(255,255,255,0.4)', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {me.name}
+              </span>
+            )}
+          </div>
         </div>
+        <button
+          type="button"
+          style={{
+            background: 'none', border: 'none',
+            color: 'rgba(255,255,255,0.4)', fontSize: '16px',
+            cursor: 'pointer', padding: '4px', borderRadius: '4px',
+            display: 'flex', alignItems: 'center', letterSpacing: '1px',
+            flexShrink: 0,
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+        >
+          ···
+        </button>
       </div>
 
       {/* Nav */}
@@ -198,7 +244,19 @@ export default function SidebarContent() {
           ))}
         </div>
 
-        <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.06)', margin: '8px 0' }} />
+        {/* Section label — careeros-view sectionLabelStyle */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '4px',
+          height: '28px', paddingLeft: '8px', paddingRight: '8px',
+          marginTop: '4px',
+          color: 'rgba(255,255,255,0.35)', fontSize: '11px',
+          fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase',
+        }}>
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          My Space
+        </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
           {NAV_SUB.map((item) => (

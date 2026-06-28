@@ -2,6 +2,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getJob, getSimilarJobs, saveJob, unsaveJob, recordApplyClick } from '@/lib/api/jobs'
+import { CompanyAvatar } from '@/components/app/CompanyAvatar'
 import { useToastStore } from '@/stores/toastStore'
 
 const REMOTE_LABELS: Record<string, string> = {
@@ -48,137 +49,162 @@ export default function JobDetailPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: '48px 24px' }}>
-        {[0, 1, 2].map((i) => (
-          <div key={i} style={{
-            height: '44px', marginBottom: '4px',
-            backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '4px',
-            animation: 'pulse 1.5s ease-in-out infinite',
-          }} />
-        ))}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        <div style={{ flex: 1, padding: '32px 40px' }}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} style={{
+              height: '44px', marginBottom: '4px',
+              backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '4px',
+              animation: 'pulse 1.5s ease-in-out infinite',
+            }} />
+          ))}
+        </div>
+        <div style={{ width: '280px', borderLeft: '1px solid rgba(255,255,255,0.06)', backgroundColor: 'rgb(11,12,13)' }} />
       </div>
     )
   }
 
   if (!job) return null
 
+  const metaItems = [
+    { label: '근무형태', content: REMOTE_LABELS[job.remoteType] ?? job.remoteType },
+    { label: '직무', content: job.roleCategory ?? '—' },
+    { label: '경력', content: job.experienceLevel ?? '—' },
+    { label: '위치', content: job.preferredCountries.join(', ') || '—' },
+    { label: '게시일', content: new Date(job.postedAt).toLocaleDateString('ko-KR') },
+  ]
+
   return (
-    <div style={{ maxWidth: '860px', margin: '0 auto' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Sticky header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        height: '48px', padding: '0 24px',
+        height: '48px', padding: '0 20px',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
-        backgroundColor: 'rgb(8,9,10)',
+        backgroundColor: 'rgb(8,9,10)', flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
           <button
             onClick={() => router.push('/jobs')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: '13px', color: 'rgba(255,255,255,0.35)' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: '13px', color: 'rgb(138,143,152)' }}
           >
-            채용공고
+            ← 채용공고
           </button>
-          <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.2)' }}>/</span>
-          <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ color: 'rgba(255,255,255,0.2)' }}>/</span>
+          <span style={{ fontSize: '13px', color: 'rgb(138,143,152)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {job.title}
           </span>
         </div>
-        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-          <button
-            onClick={() => toggleSave()}
-            disabled={savePending}
-            style={{
-              height: '28px', padding: '0 12px',
-              borderRadius: '4px', fontSize: '12px', cursor: 'pointer',
-              backgroundColor: job.isSaved ? 'rgba(99,102,241,0.12)' : 'transparent',
-              border: job.isSaved ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(255,255,255,0.1)',
-              color: job.isSaved ? 'rgb(99,102,241)' : 'rgba(255,255,255,0.5)',
-              opacity: savePending ? 0.5 : 1,
-            }}
-          >
-            {job.isSaved ? '저장됨' : '저장'}
-          </button>
-          <button
-            onClick={handleApply}
-            style={{
-              height: '28px', padding: '0 14px',
-              backgroundColor: 'rgb(229,229,230)', color: 'rgb(8,9,10)',
-              fontWeight: 510, fontSize: '12px',
-              border: 'none', borderRadius: '4px', cursor: 'pointer',
-            }}
-          >
-            지원하기
-          </button>
-        </div>
+        <button type="button" style={{ background: 'none', border: 'none', color: 'rgb(138,143,152)', cursor: 'pointer', fontSize: '16px', padding: '4px 8px', letterSpacing: '1px' }}>
+          ···
+        </button>
       </div>
 
-      {/* Content */}
-      <div style={{ padding: '24px' }}>
-        {/* Job header */}
-        <div style={{ marginBottom: '20px' }}>
-          <h1 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 600, color: 'rgba(255,255,255,0.9)', letterSpacing: '-0.01em' }}>
-            {job.title}
-          </h1>
-          <p style={{ margin: 0, fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>{job.company}</p>
-        </div>
-
-        {/* Badges */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '24px' }}>
-          <span style={badgeStyle}>{REMOTE_LABELS[job.remoteType] ?? job.remoteType}</span>
-          {job.roleCategory && <span style={badgeStyle}>{job.roleCategory}</span>}
-          {job.experienceLevel && <span style={badgeStyle}>{job.experienceLevel}</span>}
-          {job.preferredCountries.map((c) => <span key={c} style={badgeStyle}>{c}</span>)}
-        </div>
-
-        {/* Description */}
-        <div style={{
-          padding: '20px', borderRadius: '8px',
-          border: '1px solid rgba(255,255,255,0.06)',
-          backgroundColor: 'rgb(13,14,15)',
-          marginBottom: '32px',
-        }}>
-          <p style={{ margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-            {job.description}
-          </p>
-          <p style={{ margin: '16px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
-            게시일: {new Date(job.postedAt).toLocaleDateString('ko-KR')}
-          </p>
-        </div>
-
-        {/* Similar jobs */}
-        {similar && similar.length > 0 && (
-          <div>
-            <div style={{
-              fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.4)',
-              textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px',
-            }}>
-              유사 공고
-            </div>
-            <div style={{ borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden', backgroundColor: 'rgb(13,14,15)' }}>
-              {similar.map((j, i) => (
-                <div
-                  key={j.jobId}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '12px',
-                    height: '44px', padding: '0 16px',
-                    borderBottom: i < similar.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => router.push(`/jobs/${j.jobId}`)}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  <span style={{ flex: 1, fontSize: '13px', color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {j.title}
-                  </span>
-                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>{j.company}</span>
-                  <span style={badgeStyle}>{REMOTE_LABELS[j.remoteType] ?? j.remoteType}</span>
-                </div>
-              ))}
+      {/* 2-column body */}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {/* Left: content */}
+        <div style={{ flex: 1, overflow: 'auto', padding: '32px 40px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <CompanyAvatar company={job.company} size={32} />
+            <div>
+              <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 500, color: 'rgb(247,248,248)', lineHeight: 1.3 }}>
+                {job.title}
+              </h1>
+              <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'rgb(138,143,152)' }}>{job.company}</p>
             </div>
           </div>
-        )}
+
+          {/* Badges */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '24px' }}>
+            <span style={badgeStyle}>{REMOTE_LABELS[job.remoteType] ?? job.remoteType}</span>
+            {job.roleCategory && <span style={badgeStyle}>{job.roleCategory}</span>}
+            {job.experienceLevel && <span style={badgeStyle}>{job.experienceLevel}</span>}
+            {job.preferredCountries.map((c) => <span key={c} style={badgeStyle}>{c}</span>)}
+          </div>
+
+          {/* Description */}
+          <div style={{ fontSize: '15px', lineHeight: 1.7, color: 'rgb(138,143,152)', marginBottom: '40px', whiteSpace: 'pre-wrap' }}>
+            {job.description}
+          </div>
+
+          {/* Similar jobs */}
+          {similar && similar.length > 0 && (
+            <div>
+              <div style={{
+                fontSize: '12px', fontWeight: 500, color: 'rgb(138,143,152)',
+                textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px',
+              }}>
+                유사 공고
+              </div>
+              <div style={{ borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden', backgroundColor: 'rgb(13,14,15)' }}>
+                {similar.map((j, i) => (
+                  <div
+                    key={j.jobId}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '8px',
+                      height: '36px', padding: '0 16px',
+                      borderBottom: i < similar.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => router.push(`/jobs/${j.jobId}`)}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    <CompanyAvatar company={j.company} size={16} />
+                    <span style={{ flex: 1, fontSize: '13px', color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {j.title}
+                    </span>
+                    <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>{j.company}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right: 280px meta panel */}
+        <div style={{
+          width: '280px', flexShrink: 0,
+          borderLeft: '1px solid rgba(255,255,255,0.06)',
+          backgroundColor: 'rgb(11,12,13)',
+          padding: '24px 20px', overflow: 'auto',
+        }}>
+          {metaItems.map(({ label, content }) => (
+            <div key={label} style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '11px', color: 'rgb(138,143,152)', marginBottom: '6px', fontWeight: 500 }}>{label}</div>
+              <div style={{ fontSize: '12px', color: 'rgb(208,214,224)' }}>{content}</div>
+            </div>
+          ))}
+
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button
+              onClick={() => toggleSave()}
+              disabled={savePending}
+              style={{
+                height: '32px', width: '100%',
+                borderRadius: '6px', fontSize: '13px', cursor: savePending ? 'not-allowed' : 'pointer',
+                backgroundColor: job.isSaved ? 'rgba(99,102,241,0.12)' : 'transparent',
+                border: job.isSaved ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(255,255,255,0.15)',
+                color: job.isSaved ? 'rgb(99,102,241)' : 'rgba(255,255,255,0.6)',
+                opacity: savePending ? 0.5 : 1,
+              }}
+            >
+              {job.isSaved ? '저장됨' : '저장하기'}
+            </button>
+            <button
+              onClick={handleApply}
+              style={{
+                height: '32px', width: '100%',
+                backgroundColor: 'rgb(229,229,230)', color: 'rgb(8,9,10)',
+                fontWeight: 510, fontSize: '13px',
+                border: 'none', borderRadius: '6px', cursor: 'pointer',
+              }}
+            >
+              지원하기 →
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )

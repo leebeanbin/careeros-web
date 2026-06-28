@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { getMatch } from '@/lib/api/matches'
 import ScoreBreakdownChart from '@/components/app/ScoreBreakdownChart'
+import { MatchStatusIcon } from '@/components/app/MatchStatusIcon'
 
 const AXES = [
   { key: 'skillScore' as const,      label: '기술 스택' },
@@ -31,17 +32,6 @@ function ScoreBadge({ score }: { score: number }) {
   )
 }
 
-function Pill({ label }: { label: string }) {
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center',
-      height: '20px', padding: '0 8px', borderRadius: '10px',
-      backgroundColor: 'rgba(255,255,255,0.06)',
-      fontSize: '11px', color: 'rgba(255,255,255,0.5)',
-    }}>{label}</span>
-  )
-}
-
 export default function MatchDetailPage() {
   const { matchId } = useParams<{ matchId: string }>()
   const { data: match, isLoading } = useQuery({
@@ -51,12 +41,14 @@ export default function MatchDetailPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', height: '100%' }}>
         {[0, 1].map((i) => (
           <div key={i} style={{
-            height: '200px', borderRadius: '8px',
-            backgroundColor: 'rgba(255,255,255,0.04)',
-            marginBottom: '16px',
+            flex: i === 0 ? 1 : undefined,
+            width: i === 1 ? '280px' : undefined,
+            height: '100%',
+            backgroundColor: i === 1 ? 'rgb(11,12,13)' : 'transparent',
+            borderLeft: i === 1 ? '1px solid rgba(255,255,255,0.06)' : undefined,
           }} />
         ))}
       </div>
@@ -64,52 +56,73 @@ export default function MatchDetailPage() {
   }
   if (!match) return null
 
-  const card: React.CSSProperties = {
-    backgroundColor: 'rgb(13,14,15)',
-    border: '1px solid rgba(255,255,255,0.06)',
-    borderRadius: '8px',
-    padding: '20px',
-  }
+  const metaItems: { label: string; content: React.ReactNode }[] = [
+    { label: '매칭 점수', content: <ScoreBadge score={match.totalScore} /> },
+    { label: '상태', content: <span style={{ fontSize: '12px', color: 'rgb(208,214,224)' }}>활성</span> },
+    { label: '회사', content: <span style={{ fontSize: '12px', color: 'rgb(208,214,224)' }}>{match.job.company}</span> },
+    { label: '근무형태', content: <span style={{ fontSize: '12px', color: 'rgb(208,214,224)' }}>{REMOTE[match.job.remoteType] ?? match.job.remoteType}</span> },
+    { label: '직무', content: <span style={{ fontSize: '12px', color: 'rgb(208,214,224)' }}>{match.job.roleCategory || '—'}</span> },
+  ]
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-      {/* Sticky header */}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: 'rgb(8,9,10)' }}>
+      {/* Sticky breadcrumb header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
-        display: 'flex', alignItems: 'center', gap: '12px',
-        height: '48px', padding: '0 24px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        height: '48px', padding: '0 20px',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
         backgroundColor: 'rgb(8,9,10)',
+        flexShrink: 0,
       }}>
-        <Link href="/matches" style={{
-          fontSize: '13px', color: 'rgba(255,255,255,0.35)',
-          textDecoration: 'none',
-        }}>
-          ← 매칭 목록
-        </Link>
-        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.2)' }}>/</span>
-        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {match.job.title}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+          <Link href="/matches" style={{ fontSize: '13px', color: 'rgb(138,143,152)', textDecoration: 'none' }}>
+            ← 매칭
+          </Link>
+          <span style={{ color: 'rgba(255,255,255,0.2)' }}>/</span>
+          <span style={{ fontSize: '13px', color: 'rgb(138,143,152)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {match.job.title}
+          </span>
+        </div>
+        <button type="button" style={{ background: 'none', border: 'none', color: 'rgb(138,143,152)', cursor: 'pointer', fontSize: '16px', letterSpacing: '1px' }}>···</button>
       </div>
 
-      <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-        {/* Left — score chart */}
-        <div style={card}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>매칭 점수</span>
+      {/* 2-column body */}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {/* Left: score content */}
+        <div style={{ flex: 1, overflow: 'auto', padding: '32px 40px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <MatchStatusIcon score={match.totalScore} size={16} />
             <ScoreBadge score={match.totalScore} />
           </div>
 
-          <ScoreBreakdownChart
-            skillScore={match.skillScore}
-            evidenceScore={match.evidenceScore}
-            roleScore={match.roleScore}
-            preferenceScore={match.preferenceScore}
-            freshnessScore={match.freshnessScore}
-          />
+          <h1 style={{ fontSize: '22px', fontWeight: 500, color: 'rgb(247,248,248)', margin: '0 0 6px', lineHeight: 1.3 }}>
+            {match.job.title}
+          </h1>
+          <p style={{ fontSize: '15px', lineHeight: 1.7, color: 'rgb(138,143,152)', margin: '0 0 32px' }}>
+            {match.job.company}
+          </p>
 
-          <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {/* Score chart */}
+          <div style={{
+            backgroundColor: 'rgb(13,14,15)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: '8px', padding: '20px', marginBottom: '20px',
+          }}>
+            <div style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
+              매칭 점수 분포
+            </div>
+            <ScoreBreakdownChart
+              skillScore={match.skillScore}
+              evidenceScore={match.evidenceScore}
+              roleScore={match.roleScore}
+              preferenceScore={match.preferenceScore}
+              freshnessScore={match.freshnessScore}
+            />
+          </div>
+
+          {/* 5-axis bars */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {AXES.map((a) => (
               <div key={a.key} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ width: '60px', fontSize: '11px', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>
@@ -131,29 +144,19 @@ export default function MatchDetailPage() {
           </div>
         </div>
 
-        {/* Right — job detail */}
-        <div style={card}>
-          <h1 style={{ fontSize: '15px', fontWeight: 600, color: 'rgba(255,255,255,0.9)', margin: '0 0 4px' }}>
-            {match.job.title}
-          </h1>
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: '0 0 16px' }}>
-            {match.job.company}
-          </p>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
-            <Pill label={REMOTE[match.job.remoteType] ?? match.job.remoteType} />
-            {match.job.roleCategory && <Pill label={match.job.roleCategory} />}
-            {match.job.preferredCountries.map((c) => <Pill key={c} label={c} />)}
-          </div>
-
-          <p style={{
-            fontSize: '13px', lineHeight: 1.7, color: 'rgba(255,255,255,0.6)',
-            margin: '0 0 20px',
-            display: '-webkit-box', WebkitLineClamp: 8, WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}>
-            {match.job.description}
-          </p>
+        {/* Right: 280px meta panel */}
+        <div style={{
+          width: '280px', flexShrink: 0,
+          borderLeft: '1px solid rgba(255,255,255,0.06)',
+          backgroundColor: 'rgb(11,12,13)',
+          padding: '24px 20px', overflow: 'auto',
+        }}>
+          {metaItems.map(({ label, content }) => (
+            <div key={label} style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '11px', color: 'rgb(138,143,152)', marginBottom: '6px', fontWeight: 500 }}>{label}</div>
+              {content}
+            </div>
+          ))}
 
           {match.job.applyUrl && (
             <a
@@ -161,11 +164,12 @@ export default function MatchDetailPage() {
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                display: 'inline-flex', alignItems: 'center',
-                height: '34px', padding: '0 16px', borderRadius: '6px',
+                display: 'flex', justifyContent: 'center', alignItems: 'center',
+                height: '34px', borderRadius: '6px',
                 backgroundColor: 'rgb(99,102,241)',
                 fontSize: '13px', fontWeight: 500, color: 'white',
-                textDecoration: 'none', transition: 'opacity 0.1s',
+                textDecoration: 'none', marginTop: '8px',
+                transition: 'opacity 0.1s',
               }}
               onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}

@@ -7,6 +7,19 @@ import {
 import type { NotificationDto } from '@/lib/api/types'
 import CursorList from '@/components/ui/CursorList'
 
+function formatRelative(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const m = Math.floor(diff / 60000)
+  if (m < 1) return '방금'
+  if (m < 60) return `${m}분 전`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}시간 전`
+  const d = Math.floor(h / 24)
+  if (d === 1) return '어제'
+  if (d < 7) return `${d}일 전`
+  return new Date(iso).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
+}
+
 const TYPE_LABEL: Record<string, string> = {
   MATCH: '매칭', RESUME: '이력서', GITHUB: 'GitHub', ADVISOR: '어드바이저', SYSTEM: '시스템',
 }
@@ -94,8 +107,8 @@ export default function NotificationsPage() {
                 }}>
                   {TYPE_LABEL[n.type] ?? n.type}
                 </span>
-                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
-                  {new Date(n.createdAt).toLocaleString('ko-KR')}
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  {formatRelative(n.createdAt)}
                 </span>
               </div>
               <p style={{ margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.75)', lineHeight: 1.4 }}>

@@ -6,18 +6,19 @@ import { listRoles } from '@/lib/api/taxonomy'
 import type { JobDto } from '@/lib/api/types'
 import CursorList from '@/components/ui/CursorList'
 import { RemoteTypeIcon } from '@/components/app/RemoteTypeIcon'
+import { CompanyAvatar } from '@/components/app/CompanyAvatar'
+import { LabelPill } from '@/components/app/LabelPill'
+import { FilterPill } from '@/components/app/FilterPill'
 import { useToastStore } from '@/stores/toastStore'
 
-const REMOTE_LABELS: Record<string, string> = {
-  REMOTE: '원격', HYBRID: '하이브리드', ON_SITE: '오프사이트',
-}
-
-const badge = {
-  display: 'inline-flex', alignItems: 'center',
-  backgroundColor: 'rgba(255,255,255,0.08)',
-  color: 'rgba(255,255,255,0.5)',
-  borderRadius: '10px', fontSize: '11px', fontWeight: 500,
-  padding: '0 6px', lineHeight: '18px', whiteSpace: 'nowrap' as const,
+const ROLE_COLORS: Record<string, string> = {
+  BACKEND:  'rgb(59,130,246)',
+  FRONTEND: 'rgb(139,92,246)',
+  FULLSTACK:'rgb(99,102,241)',
+  DATA:     'rgb(34,197,94)',
+  AI:       'rgb(234,179,8)',
+  DEVOPS:   'rgb(20,184,166)',
+  MOBILE:   'rgb(236,72,153)',
 }
 
 export default function JobsPage() {
@@ -57,9 +58,9 @@ export default function JobsPage() {
     <div
       key={job.jobId}
       style={{
-        display: 'flex', alignItems: 'center', gap: '12px',
-        height: '44px', padding: '0 16px',
-        borderBottom: '1px solid rgba(255,255,255,0.04)',
+        display: 'flex', alignItems: 'center', gap: '8px',
+        height: '36px', padding: '0 16px',
+        borderBottom: '1px solid rgba(255,255,255,0.03)',
         cursor: 'pointer',
       }}
       onClick={() => router.push(`/jobs/${job.jobId}`)}
@@ -67,20 +68,20 @@ export default function JobsPage() {
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
     >
       <RemoteTypeIcon remoteType={job.remoteType} size={14} />
+      <CompanyAvatar company={job.company} size={18} />
       <span style={{ flex: 1, fontSize: '13px', color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {job.title}
       </span>
-      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-        {job.company}
-      </span>
-      <span style={badge}>{REMOTE_LABELS[job.remoteType] ?? job.remoteType}</span>
+      {job.roleCategory && (
+        <LabelPill label={job.roleCategory} color={ROLE_COLORS[job.roleCategory] ?? 'rgb(138,143,152)'} />
+      )}
       <button
         onClick={(e) => { e.stopPropagation(); toggleSave({ jobId: job.jobId, saved: job.isSaved }) }}
         style={{
           backgroundColor: job.isSaved ? 'rgba(99,102,241,0.12)' : 'transparent',
           border: job.isSaved ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(255,255,255,0.1)',
           color: job.isSaved ? 'rgb(99,102,241)' : 'rgba(255,255,255,0.4)',
-          borderRadius: '4px', height: '24px', padding: '0 8px', fontSize: '11px',
+          borderRadius: '4px', height: '22px', padding: '0 8px', fontSize: '11px',
           cursor: 'pointer', flexShrink: 0,
         }}
       >
@@ -101,18 +102,23 @@ export default function JobsPage() {
       {/* Sticky header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        display: 'flex', alignItems: 'center', gap: '12px',
         height: '48px', padding: '0 24px',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
         backgroundColor: 'rgb(8,9,10)',
       }}>
-        <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>채용공고</span>
+        <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)', flexShrink: 0 }}>채용공고</span>
         <input
           value={keyword}
           onChange={(e) => setParam('keyword', e.target.value)}
           placeholder="키워드 검색..."
-          style={{ ...filterInput, width: '200px' }}
+          style={{ ...filterInput, flex: 1, maxWidth: '240px' }}
         />
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
+          <FilterPill label="필터" />
+          <FilterPill label="그룹" />
+          <FilterPill label="보기" />
+        </div>
       </div>
 
       {/* Tabs */}
@@ -177,7 +183,7 @@ export default function JobsPage() {
       )}
 
       {/* List */}
-      <div style={{ padding: '0 0' }}>
+      <div>
         {tab === 'saved' ? (
           <CursorList<JobDto>
             queryKey={['jobs', 'saved']}
