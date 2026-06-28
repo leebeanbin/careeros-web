@@ -4,13 +4,19 @@ import { useForm, Controller } from 'react-hook-form'
 import { getGraph, getPreferences, updatePreferences } from '@/lib/api/candidate'
 import type { CandidatePreferences } from '@/lib/api/types'
 import ScoreBreakdownChart from '@/components/app/ScoreBreakdownChart'
-import PageHeader from '@/components/ui/PageHeader'
-import Spinner from '@/components/ui/Spinner'
 import { useToastStore } from '@/stores/toastStore'
 
 const REMOTE_OPTIONS = ['REMOTE', 'HYBRID', 'ON_SITE'] as const
 const REMOTE_LABELS: Record<string, string> = { REMOTE: '원격', HYBRID: '하이브리드', ON_SITE: '오프사이트' }
 const COUNTRY_OPTIONS = ['대한민국', '미국', '캐나다', '일본', '독일', '영국', '싱가포르', '호주']
+
+const card: React.CSSProperties = {
+  backgroundColor: 'rgb(13,14,15)',
+  border: '1px solid rgba(255,255,255,0.06)',
+  borderRadius: '8px',
+  padding: '20px',
+  marginBottom: '16px',
+}
 
 export default function CandidatePage() {
   const qc = useQueryClient()
@@ -32,97 +38,122 @@ export default function CandidatePage() {
   })
 
   return (
-    <div className="max-w-[640px] mx-auto px-5 py-6">
-      <PageHeader title="경력 그래프" description="AI가 분석한 나의 기술 프로필" />
+    <div>
+      {/* Sticky header */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 10,
+        display: 'flex', alignItems: 'center',
+        height: '48px', padding: '0 24px',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        backgroundColor: 'rgb(8,9,10)',
+      }}>
+        <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>경력 그래프</span>
+      </div>
 
-      {graph && (
-        <div className="rounded-lg border border-gray-200 bg-white p-6 mb-6
-                        shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-semibold text-gray-900">매칭 점수 분포</h2>
-            <span className="text-xl font-semibold text-indigo-600">{graph.totalScore}</span>
+      <div style={{ maxWidth: '720px', margin: '0 auto', padding: '24px' }}>
+        {/* Score chart */}
+        {graph && (
+          <div style={card}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 500, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                매칭 점수 분포
+              </span>
+              <span style={{ fontSize: '24px', fontWeight: 600, color: 'rgb(99,102,241)' }}>
+                {graph.totalScore}
+              </span>
+            </div>
+            <ScoreBreakdownChart
+              skillScore={graph.skillScore}
+              evidenceScore={graph.evidenceScore}
+              roleScore={graph.roleScore}
+              preferenceScore={graph.preferenceScore}
+              freshnessScore={graph.freshnessScore}
+            />
           </div>
-          <ScoreBreakdownChart
-            skillScore={graph.skillScore}
-            evidenceScore={graph.evidenceScore}
-            roleScore={graph.roleScore}
-            preferenceScore={graph.preferenceScore}
-            freshnessScore={graph.freshnessScore}
-          />
-        </div>
-      )}
+        )}
 
-      {prefs && (
-        <form
-          onSubmit={handleSubmit((d) => save(d))}
-          className="rounded-lg border border-gray-200 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-        >
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">선호도 설정</h2>
+        {/* Preferences form */}
+        {prefs && (
+          <form onSubmit={handleSubmit((d) => save(d))} style={card}>
+            <div style={{ fontSize: '12px', fontWeight: 500, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '20px' }}>
+              선호도 설정
+            </div>
 
-          <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">근무 형태</label>
-              <div className="flex gap-3">
-                {REMOTE_OPTIONS.map((opt) => (
-                  <label key={opt} className="flex items-center gap-1.5 text-sm cursor-pointer">
-                    <input type="radio" value={opt} {...register('remoteType')} />
-                    {REMOTE_LABELS[opt]}
-                  </label>
-                ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Remote type */}
+              <div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', fontWeight: 500, marginBottom: '10px' }}>근무 형태</div>
+                <div style={{ display: 'flex', gap: '20px' }}>
+                  {REMOTE_OPTIONS.map((opt) => (
+                    <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', accentColor: 'rgb(99,102,241)' } as React.CSSProperties}>
+                      <input type="radio" value={opt} {...register('remoteType')} style={{ accentColor: 'rgb(99,102,241)' } as React.CSSProperties} />
+                      {REMOTE_LABELS[opt]}
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">선호 국가</label>
-              <Controller
-                name="preferredCountries"
-                control={control}
-                render={({ field }) => (
-                  <div className="flex flex-wrap gap-2">
-                    {COUNTRY_OPTIONS.map((country) => (
-                      <label key={country} className="flex items-center gap-1.5 text-sm cursor-pointer">
-                        <input
-                          type="checkbox"
-                          value={country}
-                          checked={field.value?.includes(country) ?? false}
-                          onChange={(e) => {
-                            const current = field.value ?? []
-                            field.onChange(
-                              e.target.checked
-                                ? [...current, country]
-                                : current.filter((c: string) => c !== country),
-                            )
-                          }}
-                        />
-                        {country}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              />
-            </div>
+              {/* Countries */}
+              <div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', fontWeight: 500, marginBottom: '10px' }}>선호 국가</div>
+                <Controller
+                  name="preferredCountries"
+                  control={control}
+                  render={({ field }) => (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                      {COUNTRY_OPTIONS.map((country) => (
+                        <label key={country} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            value={country}
+                            checked={field.value?.includes(country) ?? false}
+                            onChange={(e) => {
+                              const current = field.value ?? []
+                              field.onChange(
+                                e.target.checked
+                                  ? [...current, country]
+                                  : current.filter((c: string) => c !== country),
+                              )
+                            }}
+                            style={{ accentColor: 'rgb(99,102,241)' } as React.CSSProperties}
+                          />
+                          {country}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                />
+              </div>
 
-            <div>
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="checkbox" {...register('relocationPossible')} />
-                <span className="font-medium text-gray-700">이주 가능</span>
+              {/* Relocation */}
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}>
+                <input type="checkbox" {...register('relocationPossible')} style={{ accentColor: 'rgb(99,102,241)' } as React.CSSProperties} />
+                이주 가능
               </label>
             </div>
-          </div>
 
-          <div className="mt-6 flex justify-end">
-            <button
-              type="submit"
-              disabled={isSubmitting || !isDirty}
-              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white
-                         hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
-            >
-              {isSubmitting && <Spinner size="sm" className="text-white" />}
-              저장
-            </button>
-          </div>
-        </form>
-      )}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
+              <button
+                type="submit"
+                disabled={isSubmitting || !isDirty}
+                style={{
+                  backgroundColor: isSubmitting || !isDirty ? 'rgba(229,229,230,0.3)' : 'rgb(229,229,230)',
+                  color: 'rgb(8,9,10)',
+                  fontWeight: 510,
+                  borderRadius: '6px',
+                  height: '32px',
+                  padding: '0 14px',
+                  fontSize: '13px',
+                  border: 'none',
+                  cursor: isSubmitting || !isDirty ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {isSubmitting ? '저장 중...' : '저장'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   )
 }

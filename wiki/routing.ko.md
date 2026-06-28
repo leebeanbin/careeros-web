@@ -59,4 +59,4 @@ GitHub 인증 인가 → /api/auth/callback?code=xxx
 
 ---
 
-[Wiki 인덱스](README.md) | [상태 관리 ▶](state.ko.md)
+[Wiki 인덱스](README.ko.md) | [상태 관리 ▶](state.ko.md)

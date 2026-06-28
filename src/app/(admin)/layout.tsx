@@ -3,14 +3,17 @@ import Topbar from '@/components/app/Topbar'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-white">
-      <aside className="hidden lg:flex lg:w-[230px] lg:shrink-0 lg:flex-col
-                        lg:border-r lg:border-gray-200 lg:bg-gray-50">
+    <div className="dark-app flex h-screen overflow-hidden"
+         style={{ backgroundColor: 'rgb(8,9,10)' }}>
+      <aside className="hidden lg:flex lg:w-[240px] lg:shrink-0 lg:flex-col"
+             style={{ backgroundColor: 'rgb(11,12,13)', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
         <SidebarContent />
       </aside>
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar />
-        <main className="flex-1 overflow-y-auto bg-white">{children}</main>
+        <main className="flex-1 overflow-y-auto" style={{ backgroundColor: 'rgb(8,9,10)' }}>
+          {children}
+        </main>
       </div>
     </div>
   )

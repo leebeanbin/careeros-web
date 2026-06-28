@@ -1,22 +1,42 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { logout } from '@/lib/api/auth'
 import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
+import { useQuery } from '@tanstack/react-query'
+import { listNotifications } from '@/lib/api/notifications'
 
-interface TopbarProps {
-  title?: string
-  unreadCount?: number
+const ROUTE_LABELS: Record<string, string> = {
+  '/dashboard':  '대시보드',
+  '/jobs':       '채용공고',
+  '/matches':    '나의 매칭',
+  '/resume':     '이력서',
+  '/github':     'GitHub',
+  '/candidate':  '경력 그래프',
+  '/advisor':    'AI 어드바이저',
+  '/notifications': '알림',
+  '/settings':   '설정',
+  '/admin/users':    '사용자 관리',
+  '/admin/jobs':     '공고 관리',
+  '/admin/ai-calls': 'AI 호출 이력',
 }
 
-export default function Topbar({ title, unreadCount = 0 }: TopbarProps) {
+export default function Topbar() {
   const [open, setOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const pathname = usePathname()
   const { clear } = useAuthStore()
   const { add } = useToastStore()
+
+  const { data: notifPage } = useQuery({
+    queryKey: ['notifications', 'unread-count'],
+    queryFn: () => listNotifications({ size: 1, unreadOnly: true }),
+    staleTime: 60_000,
+  })
+  const unreadCount = (notifPage as { totalCount?: number } | undefined)?.totalCount ?? 0
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -29,55 +49,94 @@ export default function Topbar({ title, unreadCount = 0 }: TopbarProps) {
   }, [])
 
   const handleLogout = async () => {
-    try {
-      await logout()
-    } catch {
-      add('error', '로그아웃 중 오류가 발생했습니다.')
-    }
+    try { await logout() } catch { add('error', '로그아웃 중 오류가 발생했습니다.') }
     clear()
     router.push('/login')
   }
 
-  return (
-    <header className="flex h-12 items-center justify-between border-b border-gray-200 bg-white px-4">
-      <span className="text-sm font-semibold text-gray-900">{title}</span>
+  const title = Object.entries(ROUTE_LABELS).find(([k]) => pathname.startsWith(k))?.[1] ?? ''
 
-      <div className="flex items-center gap-3">
-        <Link href="/notifications" className="relative p-1 text-gray-500 hover:text-gray-700">
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+  return (
+    <header style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      height: '48px',
+      padding: '0 16px',
+      borderBottom: '1px solid rgba(255,255,255,0.06)',
+      backgroundColor: 'rgb(8,9,10)',
+      flexShrink: 0,
+      position: 'sticky',
+      top: 0,
+      zIndex: 10,
+    }}>
+      <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>
+        {title}
+      </span>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Bell */}
+        <Link href="/notifications" style={{
+          position: 'relative', display: 'flex', alignItems: 'center',
+          padding: '6px', borderRadius: '4px',
+          color: 'rgba(255,255,255,0.4)', textDecoration: 'none',
+        }}>
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <path d="M7.5 1.5A4 4 0 0 0 3.5 5.5V9l-1 2h10l-1-2V5.5A4 4 0 0 0 7.5 1.5z"
+                  stroke="currentColor" strokeWidth="1.2"/>
+            <path d="M6.5 11a1 1 0 0 0 2 0" stroke="currentColor" strokeWidth="1.2"/>
           </svg>
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center
-                             rounded-full bg-red-500 text-[10px] font-medium text-white">
+            <span style={{
+              position: 'absolute', top: '2px', right: '2px',
+              width: '14px', height: '14px', borderRadius: '50%',
+              backgroundColor: 'rgb(99,102,241)',
+              fontSize: '9px', fontWeight: 600, color: 'white',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </Link>
 
-        <div ref={dropdownRef} className="relative">
-          <button
-            onClick={() => setOpen((v) => !v)}
-            className="flex h-8 w-8 items-center justify-center rounded-full
-                       bg-indigo-100 text-sm font-semibold text-indigo-600"
-          >
+        {/* Avatar dropdown */}
+        <div ref={dropdownRef} style={{ position: 'relative' }}>
+          <button onClick={() => setOpen((v) => !v)} style={{
+            width: '28px', height: '28px', borderRadius: '50%',
+            backgroundColor: 'rgb(99,102,241)',
+            fontSize: '11px', fontWeight: 700, color: 'white',
+            border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
             U
           </button>
           {open && (
-            <div className="absolute right-0 mt-2 w-44 rounded-lg border border-gray-200
-                            bg-white shadow-lg z-50">
-              <Link href="/settings"
-                    onClick={() => setOpen(false)}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg">
+            <div style={{
+              position: 'absolute', right: 0, top: 'calc(100% + 6px)',
+              width: '160px', borderRadius: '8px',
+              border: '1px solid rgba(255,255,255,0.08)',
+              backgroundColor: 'rgb(17,18,19)',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+              zIndex: 50, overflow: 'hidden',
+            }}>
+              <Link href="/settings" onClick={() => setOpen(false)} style={{
+                display: 'block', padding: '8px 12px',
+                fontSize: '13px', color: 'rgba(255,255,255,0.7)',
+                textDecoration: 'none',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}>
                 설정
               </Link>
-              <hr className="border-gray-100" />
-              <button
-                onClick={handleLogout}
-                className="block w-full px-4 py-2 text-left text-sm text-red-600
-                           hover:bg-red-50 rounded-b-lg"
-              >
+              <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.06)' }} />
+              <button onClick={handleLogout} style={{
+                display: 'block', width: '100%', padding: '8px 12px',
+                textAlign: 'left', fontSize: '13px',
+                color: 'rgba(255,99,99,0.8)',
+                background: 'none', border: 'none', cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}>
                 로그아웃
               </button>
             </div>

@@ -161,4 +161,4 @@ src/
 
 ---
 
-[Wiki 인덱스](README.md) | [페이지 라우팅 ▶](routing.ko.md)
+[Wiki 인덱스](README.ko.md) | [페이지 라우팅 ▶](routing.ko.md)

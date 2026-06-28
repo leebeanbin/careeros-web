@@ -108,4 +108,4 @@ useInfiniteQuery({
 
 ---
 
-[◀ 페이지 라우팅](routing.ko.md) | [API 클라이언트 ▶](api-client.md)
+[◀ 페이지 라우팅](routing.ko.md) | [API 클라이언트 ▶](api-client.ko.md)

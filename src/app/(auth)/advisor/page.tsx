@@ -3,16 +3,25 @@ import Link from 'next/link'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getDashboard, requestReport, listReports } from '@/lib/api/advisor'
 import type { AdvisorReport } from '@/lib/api/types'
-import PageHeader from '@/components/ui/PageHeader'
 import CursorList from '@/components/ui/CursorList'
-import { Badge } from '@/components/ui/Badge'
-import Spinner from '@/components/ui/Spinner'
 import { useToastStore } from '@/stores/toastStore'
 
-const statusVariant = (s: string): 'success' | 'info' =>
-  s === 'COMPLETED' ? 'success' : 'info'
-const statusLabel = (s: string) =>
-  s === 'COMPLETED' ? '완료' : '분석 중'
+function StatusBadge({ status }: { status: string }) {
+  const completed = status === 'COMPLETED'
+  return (
+    <span style={{
+      backgroundColor: completed ? 'rgba(34,197,94,0.12)' : 'rgba(99,102,241,0.12)',
+      color: completed ? 'rgb(34,197,94)' : 'rgb(99,102,241)',
+      borderRadius: '10px',
+      fontSize: '11px',
+      fontWeight: 500,
+      padding: '2px 7px',
+      whiteSpace: 'nowrap' as const,
+    }}>
+      {completed ? '완료' : '분석 중'}
+    </span>
+  )
+}
 
 export default function AdvisorPage() {
   const qc = useQueryClient()
@@ -33,62 +42,99 @@ export default function AdvisorPage() {
   })
 
   return (
-    <div className="max-w-[900px] mx-auto px-5 py-6">
-      <PageHeader
-        title="AI 어드바이저"
-        description="매칭 분석 보고서로 커리어 전략을 세우세요"
-        action={
-          <button
-            onClick={() => request()}
-            disabled={isPending}
-            className="flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2
-                       text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {isPending && <Spinner size="sm" className="text-white" />}
-            새 보고서 요청
-          </button>
-        }
-      />
+    <div>
+      {/* Sticky header */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 10,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        height: '48px', padding: '0 24px',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        backgroundColor: 'rgb(8,9,10)',
+      }}>
+        <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>AI 어드바이저</span>
+        <button
+          onClick={() => request()}
+          disabled={isPending}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            backgroundColor: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: isPending ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.8)',
+            borderRadius: '6px', height: '32px', padding: '0 14px',
+            fontSize: '13px', cursor: isPending ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {isPending && (
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ animation: 'spin 1s linear infinite' }}>
+              <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="15"/>
+            </svg>
+          )}
+          새 보고서 요청
+        </button>
+      </div>
 
-      {dashboard && (
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          {[
-            { label: '총 매칭', value: dashboard.totalMatches },
-            { label: '최고 점수', value: dashboard.topMatchScore },
-            { label: '평균 점수', value: dashboard.avgMatchScore },
-          ].map((s) => (
-            <div key={s.label} className="rounded-lg border border-gray-200 bg-white p-4
-                                          shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <p className="text-xs font-medium text-gray-500">{s.label}</p>
-              <p className="mt-1 text-2xl font-semibold text-gray-900">{s.value}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <h2 className="text-sm font-semibold text-gray-700 mb-3">보고서 목록</h2>
-      <CursorList<AdvisorReport>
-        queryKey={['advisor', 'reports']}
-        fetcher={(cursor) => listReports(cursor)}
-        emptyTitle="아직 보고서가 없습니다"
-        emptyDescription="새 보고서를 요청해보세요"
-        renderItem={(report) => (
-          <Link
-            key={report.reportId}
-            href={`/advisor/reports/${report.reportId}`}
-            className="flex items-center justify-between rounded-lg border border-gray-200
-                       bg-white px-4 py-3 hover:border-gray-300 transition-all duration-[150ms]"
-          >
-            <div>
-              <p className="text-sm font-medium text-gray-900">보고서 #{report.reportId}</p>
-              <p className="text-xs text-gray-500">
-                {new Date(report.createdAt).toLocaleString('ko-KR')}
-              </p>
-            </div>
-            <Badge variant={statusVariant(report.status)}>{statusLabel(report.status)}</Badge>
-          </Link>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '24px' }}>
+        {/* Stats */}
+        {dashboard && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', marginBottom: '28px' }}>
+            {[
+              { label: '총 매칭', value: dashboard.totalMatches },
+              { label: '최고 점수', value: dashboard.topMatchScore },
+              { label: '평균 점수', value: dashboard.avgMatchScore },
+            ].map((s) => (
+              <div key={s.label} style={{
+                backgroundColor: 'rgb(13,14,15)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '8px',
+                padding: '20px',
+              }}>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>{s.label}</div>
+                <div style={{ fontSize: '28px', fontWeight: 600, color: 'rgba(255,255,255,0.9)', lineHeight: 1 }}>{s.value}</div>
+              </div>
+            ))}
+          </div>
         )}
-      />
+
+        {/* Section label */}
+        <div style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
+          보고서 목록
+        </div>
+
+        <div style={{ borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden', backgroundColor: 'rgb(13,14,15)' }}>
+          <CursorList<AdvisorReport>
+            queryKey={['advisor', 'reports']}
+            fetcher={(cursor) => listReports(cursor)}
+            emptyTitle="아직 보고서가 없습니다"
+            emptyDescription="새 보고서를 요청해보세요"
+            className=""
+            renderItem={(report, i) => (
+              <Link
+                key={report.reportId}
+                href={`/advisor/reports/${report.reportId}`}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '0 16px', height: '52px',
+                  borderBottom: i > 0 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                  textDecoration: 'none',
+                  transition: 'background-color 0.1s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              >
+                <div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>
+                    보고서 #{report.reportId}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
+                    {new Date(report.createdAt).toLocaleString('ko-KR')}
+                  </div>
+                </div>
+                <StatusBadge status={report.status} />
+              </Link>
+            )}
+          />
+        </div>
+      </div>
     </div>
   )
 }

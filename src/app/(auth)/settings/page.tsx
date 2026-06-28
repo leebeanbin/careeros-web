@@ -1,16 +1,34 @@
 'use client'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/navigation'
 import { getMe, updateMe, deleteMe } from '@/lib/api/users'
 import { logout } from '@/lib/api/auth'
 import type { UpdateUserDto } from '@/lib/api/types'
-import PageHeader from '@/components/ui/PageHeader'
-import Spinner from '@/components/ui/Spinner'
-import Modal from '@/components/ui/Modal'
 import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
-import { useState } from 'react'
+
+const surface: React.CSSProperties = {
+  backgroundColor: 'rgb(13,14,15)',
+  border: '1px solid rgba(255,255,255,0.06)',
+  borderRadius: '8px',
+  padding: '20px',
+}
+const inputStyle: React.CSSProperties = {
+  height: '36px', width: '100%',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: '6px',
+  backgroundColor: 'rgba(255,255,255,0.04)',
+  color: 'rgb(247,248,248)',
+  fontSize: '13px', outline: 'none',
+  padding: '0 10px', boxSizing: 'border-box',
+}
+const labelStyle: React.CSSProperties = {
+  fontSize: '12px', fontWeight: 500,
+  color: 'rgba(255,255,255,0.5)',
+  display: 'block', marginBottom: '6px',
+}
 
 export default function SettingsPage() {
   const qc = useQueryClient()
@@ -41,80 +59,132 @@ export default function SettingsPage() {
   })
 
   return (
-    <div className="max-w-[560px] mx-auto px-5 py-6">
-      <PageHeader title="설정" description="계정 정보 및 보안 설정" />
-
-      <form
-        onSubmit={handleSubmit((d) => save(d))}
-        className="rounded-lg border border-gray-200 bg-white p-6 mb-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-      >
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">프로필</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">이름</label>
-            <input
-              {...register('name', { required: true })}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
-            <input
-              {...register('email', { required: true })}
-              type="email"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-        </div>
-        <div className="mt-5 flex justify-end">
-          <button
-            type="submit"
-            disabled={isSubmitting || !isDirty}
-            className="flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm
-                       font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {isSubmitting && <Spinner size="sm" className="text-white" />}
-            저장
-          </button>
-        </div>
-      </form>
-
-      <div className="rounded-lg border border-red-100 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-        <h2 className="text-sm font-semibold text-red-700 mb-2">위험 구역</h2>
-        <p className="text-xs text-gray-500 mb-4">계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다.</p>
-        <button
-          onClick={() => setShowDelete(true)}
-          className="rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium
-                     text-red-600 hover:bg-red-50 transition-colors duration-[150ms]"
-        >
-          계정 삭제
-        </button>
+    <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+      {/* Sticky header */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 10,
+        height: '48px', display: 'flex', alignItems: 'center',
+        padding: '0 24px',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        backgroundColor: 'rgb(8,9,10)',
+      }}>
+        <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>설정</span>
       </div>
 
-      <Modal open={showDelete} onClose={() => setShowDelete(false)} title="계정 삭제 확인">
-        <p className="text-sm text-gray-600 mb-5">
-          정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
-        </p>
-        <div className="flex justify-end gap-2">
+      <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* Profile form */}
+        <form onSubmit={handleSubmit((d) => save(d))} style={surface}>
+          <div style={{
+            fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.4)',
+            textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px',
+          }}>
+            프로필
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div>
+              <label style={labelStyle}>이름</label>
+              <input {...register('name', { required: true })} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>이메일</label>
+              <input {...register('email', { required: true })} type="email" style={inputStyle} />
+            </div>
+          </div>
+          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              type="submit"
+              disabled={isSubmitting || !isDirty}
+              style={{
+                height: '32px', padding: '0 14px',
+                backgroundColor: isSubmitting || !isDirty ? 'rgba(229,229,230,0.3)' : 'rgb(229,229,230)',
+                color: 'rgb(8,9,10)', fontWeight: 510,
+                fontSize: '13px', border: 'none',
+                borderRadius: '6px',
+                cursor: isSubmitting || !isDirty ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {isSubmitting ? '저장 중...' : '저장'}
+            </button>
+          </div>
+        </form>
+
+        {/* Danger zone */}
+        <div style={{
+          border: '1px solid rgba(255,99,99,0.2)',
+          borderRadius: '8px',
+          backgroundColor: 'rgba(255,0,0,0.03)',
+          padding: '20px',
+        }}>
+          <div style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(255,99,99,0.7)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
+            위험 구역
+          </div>
+          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '14px', lineHeight: 1.5 }}>
+            계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다.
+          </p>
           <button
-            onClick={() => setShowDelete(false)}
-            className="rounded-md border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+            onClick={() => setShowDelete(true)}
+            style={{
+              height: '30px', padding: '0 12px',
+              border: '1px solid rgba(255,99,99,0.3)',
+              color: 'rgba(255,99,99,0.8)',
+              backgroundColor: 'transparent',
+              borderRadius: '6px', fontSize: '13px', cursor: 'pointer',
+            }}
           >
-            취소
-          </button>
-          <button
-            onClick={() => doDelete()}
-            disabled={deleting}
-            className="flex items-center gap-2 rounded-md bg-red-600 px-3 py-1.5 text-sm
-                       font-medium text-white hover:bg-red-700 disabled:opacity-50"
-          >
-            {deleting && <Spinner size="sm" className="text-white" />}
-            삭제 확인
+            계정 삭제
           </button>
         </div>
-      </Modal>
+      </div>
+
+      {/* Delete confirm overlay */}
+      {showDelete && (
+        <div style={{
+          position: 'fixed', inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 100,
+        }}>
+          <div style={{
+            backgroundColor: 'rgb(17,18,19)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '12px', padding: '24px', width: '320px',
+          }}>
+            <h2 style={{ fontSize: '15px', fontWeight: 600, color: 'rgba(255,255,255,0.9)', margin: '0 0 10px' }}>
+              계정 삭제 확인
+            </h2>
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5, margin: '0 0 20px' }}>
+              정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            </p>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowDelete(false)}
+                style={{
+                  height: '30px', padding: '0 12px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: 'rgba(255,255,255,0.5)',
+                  backgroundColor: 'transparent',
+                  borderRadius: '6px', fontSize: '13px', cursor: 'pointer',
+                }}
+              >
+                취소
+              </button>
+              <button
+                onClick={() => doDelete()}
+                disabled={deleting}
+                style={{
+                  height: '30px', padding: '0 12px',
+                  backgroundColor: deleting ? 'rgba(220,38,38,0.5)' : 'rgb(220,38,38)',
+                  color: 'white', border: 'none',
+                  borderRadius: '6px', fontSize: '13px',
+                  fontWeight: 500, cursor: deleting ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {deleting ? '삭제 중...' : '삭제 확인'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

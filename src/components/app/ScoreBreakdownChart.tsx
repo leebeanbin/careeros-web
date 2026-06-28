@@ -21,8 +21,8 @@ export default function ScoreBreakdownChart(props: ScoreBreakdownChartProps) {
   return (
     <ResponsiveContainer width="100%" height={280}>
       <RadarChart data={data} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
-        <PolarGrid stroke="#e5e7eb" />
-        <PolarAngleAxis dataKey="axis" tick={{ fontSize: 12, fill: '#6b7280' }} />
+        <PolarGrid stroke="rgba(255,255,255,0.08)" />
+        <PolarAngleAxis dataKey="axis" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.4)' }} />
         <Radar
           dataKey="value"
           name="점수"

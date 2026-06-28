@@ -37,51 +37,79 @@ export default function SignupPage() {
     { name: 'confirmPassword' as const, label: '비밀번호 확인', type: 'password', placeholder: '', rules: { required: '비밀번호를 다시 입력하세요', validate: (v: string) => v === password || '비밀번호가 일치하지 않습니다' } },
   ]
 
+  const inputCss: React.CSSProperties = {
+    width: '100%', height: '42px',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '10px', padding: '0 14px',
+    fontSize: '14px', color: 'rgb(247,248,248)',
+    outline: 'none', boxSizing: 'border-box',
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-[400px] rounded-xl bg-white p-8
-                      shadow-[0_4px_8px_rgba(0,0,0,0.06),0_12px_32px_rgba(0,0,0,0.12)]">
-        <div className="mb-6">
-          <h1 className="text-xl font-semibold text-gray-900">CareerOS</h1>
-          <p className="mt-1 text-sm text-gray-500">새 계정을 만드세요</p>
+    <main style={{
+      backgroundColor: 'rgb(8,9,10)', minHeight: '100vh',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', padding: '24px',
+    }}>
+      <div style={{
+        width: '100%', maxWidth: '400px',
+        backgroundColor: 'rgb(13,14,15)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: '16px', padding: '40px',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+          <div style={{
+            width: '28px', height: '28px', borderRadius: '6px',
+            backgroundColor: 'rgb(99,102,241)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '14px', fontWeight: 700, color: 'white',
+          }}>C</div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <h1 style={{ fontSize: '22px', fontWeight: 600, color: 'rgb(247,248,248)', margin: '0 0 8px', textAlign: 'center', letterSpacing: '-0.02em' }}>
+          시작하기
+        </h1>
+        <p style={{ fontSize: '14px', color: 'rgb(138,143,152)', margin: '0 0 28px', textAlign: 'center', lineHeight: 1.5 }}>
+          CareerOS 계정을 만드세요
+        </p>
+
+        <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {fields.map((field) => (
-            <div key={field.name}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
+            <div key={field.name} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>
+                {field.label}
+              </label>
               <input
                 type={field.type}
                 {...register(field.name, field.rules)}
                 disabled={isSubmitting}
                 placeholder={field.placeholder}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-indigo-500
-                           disabled:bg-gray-100"
+                style={{ ...inputCss, borderColor: errors[field.name] ? 'rgba(255,99,99,0.5)' : 'rgba(255,255,255,0.1)' }}
               />
               {errors[field.name] && (
-                <p className="mt-1 text-xs text-red-600">{errors[field.name]?.message}</p>
+                <p style={{ fontSize: '12px', color: 'rgba(255,99,99,0.8)', margin: 0 }}>{errors[field.name]?.message}</p>
               )}
             </div>
           ))}
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white
-                       hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed
-                       flex items-center justify-center gap-2"
-          >
-            {isSubmitting && <Spinner size="sm" className="text-white" />}
-            회원가입
+          <button type="submit" disabled={isSubmitting} style={{
+            width: '100%', height: '42px', marginTop: '4px',
+            backgroundColor: isSubmitting ? 'rgba(229,229,230,0.5)' : 'rgb(229,229,230)',
+            color: 'rgb(8,9,10)', fontSize: '14px', fontWeight: 510,
+            border: 'none', borderRadius: '10px', cursor: isSubmitting ? 'not-allowed' : 'pointer',
+          }}>
+            {isSubmitting ? '처리 중...' : '계정 만들기'}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+        <p style={{ marginTop: '24px', textAlign: 'center', fontSize: '13px', color: 'rgb(138,143,152)', margin: '24px 0 0' }}>
           이미 계정이 있으신가요?{' '}
-          <Link href="/login" className="font-medium text-indigo-600 hover:underline">로그인</Link>
+          <Link href="/login" style={{ color: 'rgb(99,102,241)', textDecoration: 'none', fontWeight: 500 }}>
+            로그인
+          </Link>
         </p>
       </div>
-    </div>
+    </main>
   )
 }

@@ -5,9 +5,17 @@ import {
   listResumes, uploadResume, deleteResume, getAnalysis, getLayoutReview, getDownloadUrl,
 } from '@/lib/api/resume'
 import type { ResumeDto } from '@/lib/api/types'
-import PageHeader from '@/components/ui/PageHeader'
 import Spinner from '@/components/ui/Spinner'
 import { useToastStore } from '@/stores/toastStore'
+
+const S = {
+  surface: { backgroundColor: 'rgb(13,14,15)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px' } as React.CSSProperties,
+  textPrimary: 'rgba(255,255,255,0.85)',
+  textMuted: 'rgba(255,255,255,0.5)',
+  textHint: 'rgba(255,255,255,0.3)',
+  border: 'rgba(255,255,255,0.06)',
+  rowBorder: 'rgba(255,255,255,0.04)',
+}
 
 export default function ResumePage() {
   const qc = useQueryClient()
@@ -20,18 +28,15 @@ export default function ResumePage() {
   const [reviewOpen, setReviewOpen] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
 
-  const { data: resumes, isLoading } = useQuery({
-    queryKey: ['resumes'],
-    queryFn: listResumes,
-  })
+  const { data: resumes, isLoading } = useQuery({ queryKey: ['resumes'], queryFn: listResumes })
 
-  const { data: analysis } = useQuery({
+  const { data: analysis, isLoading: analysisLoading } = useQuery({
     queryKey: ['resumes', selectedId, 'analysis'],
     queryFn: () => getAnalysis(selectedId!),
     enabled: !!selectedId && analysisOpen,
   })
 
-  const { data: review } = useQuery({
+  const { data: review, isLoading: reviewLoading } = useQuery({
     queryKey: ['resumes', selectedId, 'layout-review'],
     queryFn: () => getLayoutReview(selectedId!),
     enabled: !!selectedId && reviewOpen,
@@ -46,173 +51,166 @@ export default function ResumePage() {
   const handleFile = async (file: File) => {
     if (!file.name.endsWith('.pdf')) { add('error', 'PDF 파일만 업로드 가능합니다.'); return }
     if (file.size > 10 * 1024 * 1024) { add('error', '파일 크기는 10MB 이하여야 합니다.'); return }
-    setUploading(true)
-    setProgress(0)
+    setUploading(true); setProgress(0)
     try {
       await uploadResume(file, setProgress)
       qc.invalidateQueries({ queryKey: ['resumes'] })
       add('success', '이력서가 업로드되었습니다.')
-    } catch {
-      add('error', '업로드에 실패했습니다.')
-    } finally {
-      setUploading(false)
-      setProgress(0)
-    }
+    } catch { add('error', '업로드에 실패했습니다.') }
+    finally { setUploading(false); setProgress(0) }
   }
 
   return (
-    <div className="max-w-[640px] mx-auto px-5 py-6">
-      <PageHeader title="이력서" description="이력서를 업로드하고 AI 분석을 받으세요" />
-
-      {/* Upload zone */}
-      <div
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={(e) => {
-          e.preventDefault()
-          setIsDragging(false)
-          const f = e.dataTransfer.files[0]
-          if (f) handleFile(f)
-        }}
-        onClick={() => inputRef.current?.click()}
-        className={`mb-6 rounded-lg border-2 border-dashed cursor-pointer
-          flex flex-col items-center justify-center py-10 transition-colors duration-[150ms]
-          ${isDragging ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}
-      >
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".pdf"
-          className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
-        />
-        {uploading ? (
-          <div className="w-full max-w-xs px-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Spinner size="sm" className="text-indigo-600" />
-              <span className="text-sm text-gray-600">업로드 중... {progress}%</span>
-            </div>
-            <div className="h-1.5 rounded-full bg-gray-200">
-              <div
-                className="h-1.5 rounded-full bg-indigo-600 transition-all"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-        ) : (
-          <>
-            <p className="text-sm font-medium text-gray-700">PDF를 드래그하거나 클릭해서 업로드</p>
-            <p className="text-xs text-gray-400 mt-1">최대 10MB</p>
-          </>
-        )}
+    <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+      {/* Sticky header */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 10,
+        display: 'flex', alignItems: 'center',
+        height: '48px', padding: '0 24px',
+        borderBottom: `1px solid ${S.border}`,
+        backgroundColor: 'rgb(8,9,10)',
+      }}>
+        <span style={{ fontSize: '13px', fontWeight: 500, color: S.textMuted }}>이력서</span>
       </div>
 
-      {/* Resume list */}
-      {isLoading ? (
-        <div className="text-sm text-gray-400 text-center py-8">로딩 중...</div>
-      ) : !resumes || resumes.length === 0 ? (
-        <div className="text-sm text-gray-400 text-center py-8">업로드된 이력서가 없습니다</div>
-      ) : (
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">파일명</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">업로드일</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">상태</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
-              {resumes.map((r: ResumeDto) => (
-                <tr key={r.resumeId} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-900 font-medium">{r.fileName}</td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {new Date(r.uploadedAt).toLocaleDateString('ko-KR')}
-                  </td>
-                  <td className="px-4 py-3">
-                    {r.isActive && (
-                      <span className="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700">
-                        활성
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => { setSelectedId(r.resumeId); setAnalysisOpen(true); setReviewOpen(false) }}
-                        className="text-xs text-indigo-600 hover:underline"
-                      >
-                        분석
-                      </button>
-                      <button
-                        onClick={() => { setSelectedId(r.resumeId); setReviewOpen(true); setAnalysisOpen(false) }}
-                        className="text-xs text-indigo-600 hover:underline"
-                      >
-                        레이아웃
-                      </button>
-                      <a
-                        href={getDownloadUrl(r.resumeId)}
-                        className="text-xs text-gray-500 hover:underline"
-                      >
-                        다운로드
-                      </a>
-                      <button
-                        onClick={() => del(r.resumeId)}
-                        className="text-xs text-red-500 hover:underline"
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Analysis panel */}
-      {analysisOpen && analysis && (
-        <div className="mt-6 rounded-lg border border-gray-200 bg-white p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900">AI 분석 결과</h3>
-            <button onClick={() => setAnalysisOpen(false)} className="text-gray-400 hover:text-gray-600">×</button>
-          </div>
-          <p className="text-sm text-gray-700 mb-3">{analysis.summary}</p>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs font-medium text-green-700 mb-1">강점</p>
-              <ul className="text-xs text-gray-600 space-y-1">
-                {analysis.strengths.map((s, i) => <li key={i}>• {s}</li>)}
-              </ul>
+      <div style={{ padding: '24px' }}>
+        {/* Upload zone */}
+        <div
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f) }}
+          onClick={() => inputRef.current?.click()}
+          style={{
+            marginBottom: '24px',
+            border: `2px dashed ${isDragging ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.12)'}`,
+            borderRadius: '8px',
+            backgroundColor: isDragging ? 'rgba(99,102,241,0.06)' : 'rgba(255,255,255,0.02)',
+            cursor: 'pointer',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            padding: '40px 24px',
+            transition: 'all 0.15s',
+          }}
+        >
+          <input ref={inputRef} type="file" accept=".pdf" style={{ display: 'none' }}
+                 onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
+          {uploading ? (
+            <div style={{ width: '100%', maxWidth: '280px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <Spinner size="sm" className="text-indigo-400" />
+                <span style={{ fontSize: '13px', color: S.textMuted }}>업로드 중... {progress}%</span>
+              </div>
+              <div style={{ height: '2px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '2px' }}>
+                <div style={{ height: '2px', borderRadius: '2px', backgroundColor: 'rgb(99,102,241)', width: `${progress}%`, transition: 'width 0.2s' }} />
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-medium text-amber-700 mb-1">개선 제안</p>
-              <ul className="text-xs text-gray-600 space-y-1">
-                {analysis.suggestions.map((s, i) => <li key={i}>• {s}</li>)}
-              </ul>
-            </div>
-          </div>
+          ) : (
+            <>
+              <p style={{ fontSize: '13px', fontWeight: 500, color: S.textMuted, margin: 0 }}>PDF를 드래그하거나 클릭해서 업로드</p>
+              <p style={{ fontSize: '12px', color: S.textHint, margin: '4px 0 0' }}>최대 10MB</p>
+            </>
+          )}
         </div>
-      )}
 
-      {/* Layout review panel */}
-      {reviewOpen && review && (
-        <div className="mt-6 rounded-lg border border-gray-200 bg-white p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900">레이아웃 리뷰</h3>
-            <button onClick={() => setReviewOpen(false)} className="text-gray-400 hover:text-gray-600">×</button>
+        {/* Resume list */}
+        {isLoading ? (
+          <div style={{ textAlign: 'center', padding: '32px', fontSize: '13px', color: S.textHint }}>로딩 중...</div>
+        ) : !resumes?.length ? (
+          <div style={{ textAlign: 'center', padding: '32px', fontSize: '13px', color: S.textHint }}>업로드된 이력서가 없습니다</div>
+        ) : (
+          <div style={{ ...S.surface, overflow: 'hidden', marginBottom: '16px' }}>
+            {resumes.map((r: ResumeDto, i: number) => (
+              <div key={r.resumeId} style={{
+                display: 'flex', alignItems: 'center', gap: '12px',
+                height: '44px', padding: '0 16px',
+                borderBottom: i < resumes.length - 1 ? `1px solid ${S.rowBorder}` : 'none',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}>
+                <span style={{ flex: 1, fontSize: '13px', color: S.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {r.fileName}
+                </span>
+                <span style={{ fontSize: '12px', color: S.textHint, whiteSpace: 'nowrap' }}>
+                  {new Date(r.uploadedAt).toLocaleDateString('ko-KR')}
+                </span>
+                {r.isActive && (
+                  <span style={{
+                    backgroundColor: 'rgba(34,197,94,0.12)', color: 'rgb(34,197,94)',
+                    borderRadius: '10px', fontSize: '11px', fontWeight: 500, padding: '0 8px', lineHeight: '20px',
+                  }}>활성</span>
+                )}
+                <div style={{ display: 'flex', gap: '12px', flexShrink: 0 }}>
+                  {[
+                    { label: '분석', onClick: () => { setSelectedId(r.resumeId); setAnalysisOpen(true); setReviewOpen(false) }, color: 'rgb(99,102,241)' },
+                    { label: '레이아웃', onClick: () => { setSelectedId(r.resumeId); setReviewOpen(true); setAnalysisOpen(false) }, color: 'rgb(99,102,241)' },
+                    { label: '삭제', onClick: () => del(r.resumeId), color: 'rgba(255,99,99,0.7)' },
+                  ].map(({ label, onClick, color }) => (
+                    <button key={label} onClick={onClick} style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      fontSize: '12px', color, padding: 0,
+                    }}>{label}</button>
+                  ))}
+                  <a href={getDownloadUrl(r.resumeId)} style={{ fontSize: '12px', color: S.textMuted, textDecoration: 'none' }}>다운로드</a>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="flex items-center gap-3 mb-3">
-            <span className="text-2xl font-semibold text-indigo-600">{review.score}</span>
-            <span className="text-sm text-gray-500">/ 100</span>
+        )}
+
+        {/* Analysis panel */}
+        {analysisOpen && (
+          <div style={{ ...S.surface, padding: '20px', marginTop: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 500, color: S.textPrimary }}>AI 분석 결과</span>
+              <button onClick={() => setAnalysisOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: S.textHint, lineHeight: 1, padding: 0 }}>×</button>
+            </div>
+            {analysisLoading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}><Spinner size="md" className="text-indigo-400" /></div>
+            ) : analysis ? (
+              <>
+                <p style={{ fontSize: '13px', color: S.textMuted, lineHeight: 1.6, marginBottom: '16px' }}>{analysis.summary}</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <p style={{ fontSize: '11px', fontWeight: 500, color: 'rgb(34,197,94)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>강점</p>
+                    {analysis.strengths.map((s: string, i: number) => (
+                      <p key={i} style={{ fontSize: '12px', color: S.textMuted, marginBottom: '4px' }}>• {s}</p>
+                    ))}
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '11px', fontWeight: 500, color: 'rgb(234,179,8)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>개선 제안</p>
+                    {analysis.suggestions.map((s: string, i: number) => (
+                      <p key={i} style={{ fontSize: '12px', color: S.textMuted, marginBottom: '4px' }}>• {s}</p>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : null}
           </div>
-          <ul className="text-sm text-gray-600 space-y-1">
-            {review.feedback.map((f, i) => <li key={i}>• {f}</li>)}
-          </ul>
-        </div>
-      )}
+        )}
+
+        {/* Layout review panel */}
+        {reviewOpen && (
+          <div style={{ ...S.surface, padding: '20px', marginTop: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 500, color: S.textPrimary }}>레이아웃 리뷰</span>
+              <button onClick={() => setReviewOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: S.textHint, lineHeight: 1, padding: 0 }}>×</button>
+            </div>
+            {reviewLoading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}><Spinner size="md" className="text-indigo-400" /></div>
+            ) : review ? (
+              <>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '12px' }}>
+                  <span style={{ fontSize: '28px', fontWeight: 600, color: 'rgb(99,102,241)' }}>{review.score}</span>
+                  <span style={{ fontSize: '13px', color: S.textHint }}>/ 100</span>
+                </div>
+                {review.feedback.map((f: string, i: number) => (
+                  <p key={i} style={{ fontSize: '13px', color: S.textMuted, marginBottom: '6px' }}>• {f}</p>
+                ))}
+              </>
+            ) : null}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

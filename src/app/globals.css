@@ -36,6 +36,27 @@
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Dark app palette — (auth)/(admin) 내부 페이지 전용 */
+.dark-app {
+  color-scheme: dark;
+  --da-bg:          rgb(8,  9,  10);
+  --da-sidebar:     rgb(11, 12, 13);
+  --da-surface:     rgb(13, 14, 15);
+  --da-surface-2:   rgb(17, 18, 19);
+  --da-border:      rgba(255, 255, 255, 0.06);
+  --da-border-row:  rgba(255, 255, 255, 0.04);
+  --da-text:        rgba(255, 255, 255, 0.85);
+  --da-text-2:      rgba(255, 255, 255, 0.5);
+  --da-text-3:      rgba(255, 255, 255, 0.35);
+  --da-text-hint:   rgba(255, 255, 255, 0.3);
+  --da-hover:       rgba(255, 255, 255, 0.04);
+  --da-active:      rgba(255, 255, 255, 0.06);
+  --da-badge:       rgba(255, 255, 255, 0.08);
+  --da-badge-text:  rgba(255, 255, 255, 0.5);
+  --da-accent:      rgb(99, 102, 241);
+  --da-accent-dim:  rgba(99, 102, 241, 0.15);
+}
+
 /* Dark landing palette — (public)/page.tsx 전용 */
 .dark-landing {
   --dl-bg:         rgb(8, 9, 10);
