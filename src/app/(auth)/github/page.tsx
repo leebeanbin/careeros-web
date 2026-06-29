@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import {
@@ -141,8 +142,9 @@ export default function GitHubPage() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   {profile.avatarUrl ? (
-                    <img src={profile.avatarUrl} alt={profile.username}
-                         style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
+                    <Image src={profile.avatarUrl} alt={profile.username}
+                         width={40} height={40} unoptimized
+                         style={{ borderRadius: '50%' }} />
                   ) : (
                     <div style={{
                       width: '40px', height: '40px', borderRadius: '50%',

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/navigation'
@@ -276,20 +276,26 @@ function PreferencesSection() {
     queryFn: listRoles,
   })
 
-  const [preferredRoles, setPreferredRoles] = useState<string[]>([])
-  const [preferredCountries, setPreferredCountries] = useState<string[]>([])
-  const [remoteType, setRemoteType] = useState<string | null>(null)
-  const [relocationPossible, setRelocationPossible] = useState(false)
-  const [countryInput, setCountryInput] = useState('')
-
-  useEffect(() => {
-    if (prefs) {
-      setPreferredRoles(prefs.preferredRoles)
-      setPreferredCountries(prefs.preferredCountries)
-      setRemoteType(prefs.remoteType)
-      setRelocationPossible(prefs.relocationPossible)
+  const { setValue, watch } = useForm<CandidatePreferences>({
+    values: prefs ? {
+      preferredRoles: prefs.preferredRoles || [],
+      preferredCountries: prefs.preferredCountries || [],
+      remoteType: prefs.remoteType,
+      relocationPossible: prefs.relocationPossible,
+    } : {
+      preferredRoles: [],
+      preferredCountries: [],
+      remoteType: null,
+      relocationPossible: false,
     }
-  }, [prefs])
+  })
+
+  const preferredRoles = watch('preferredRoles') || []
+  const preferredCountries = watch('preferredCountries') || []
+  const remoteType = watch('remoteType')
+  const relocationPossible = watch('relocationPossible')
+
+  const [countryInput, setCountryInput] = useState('')
 
   const { mutate: save, isPending } = useMutation({
     mutationFn: (body: Partial<CandidatePreferences>) => updatePreferences(body),
@@ -305,17 +311,26 @@ function PreferencesSection() {
   }
 
   const toggleRole = (code: string) => {
-    setPreferredRoles((prev) =>
-      prev.includes(code) ? prev.filter((r) => r !== code) : [...prev, code],
-    )
+    const next = preferredRoles.includes(code)
+      ? preferredRoles.filter((r) => r !== code)
+      : [...preferredRoles, code]
+    setValue('preferredRoles', next, { shouldDirty: true })
   }
 
   const addCountry = () => {
     const trimmed = countryInput.trim()
     if (trimmed && !preferredCountries.includes(trimmed)) {
-      setPreferredCountries((prev) => [...prev, trimmed])
+      setValue('preferredCountries', [...preferredCountries, trimmed], { shouldDirty: true })
     }
     setCountryInput('')
+  }
+
+  const removeCountry = (c: string) => {
+    setValue('preferredCountries', preferredCountries.filter((x) => x !== c), { shouldDirty: true })
+  }
+
+  const toggleRemote = (value: CandidatePreferences['remoteType']) => {
+    setValue('remoteType', remoteType === value ? null : value, { shouldDirty: true })
   }
 
   const chipStyle = (active: boolean): React.CSSProperties => ({
@@ -385,7 +400,7 @@ function PreferencesSection() {
                 {c}
                 <button
                   type="button"
-                  onClick={() => setPreferredCountries((prev) => prev.filter((x) => x !== c))}
+                  onClick={() => removeCountry(c)}
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',
                     color: 'rgba(255,255,255,0.3)', fontSize: '12px', padding: 0, lineHeight: 1,
@@ -406,7 +421,7 @@ function PreferencesSection() {
               <button
                 key={opt.value}
                 type="button"
-                onClick={() => setRemoteType(remoteType === opt.value ? null : opt.value)}
+                onClick={() => toggleRemote(opt.value)}
                 style={chipStyle(remoteType === opt.value)}
               >
                 {opt.label}
@@ -421,7 +436,7 @@ function PreferencesSection() {
             <input
               type="checkbox"
               checked={relocationPossible}
-              onChange={(e) => setRelocationPossible(e.target.checked)}
+              onChange={(e) => setValue('relocationPossible', e.target.checked, { shouldDirty: true })}
               style={{ accentColor: 'rgb(99,102,241)' }}
             />
             이주 가능
