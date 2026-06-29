@@ -1,5 +1,6 @@
 import { apiFetch } from './client'
 import type { GitHubProfile, GitHubRepo, SyncStatus, CursorPage } from './types'
+import { normalizeCursorPage, normalizeGitHubRepo } from './adapters'
 
 export const connectGitHub = (body: { mode: 'username'; username: string } | { mode: 'oauth'; code: string }) =>
   apiFetch<GitHubProfile>('/github/connect', { method: 'POST', body: JSON.stringify(body) })
@@ -18,3 +19,10 @@ export const getSyncStatus = (syncId: string) =>
 
 export const listRepos = (cursor?: string) =>
   apiFetch<CursorPage<GitHubRepo>>(`/github/repositories${cursor ? `?cursor=${cursor}` : ''}`)
+    .then((page) => normalizeCursorPage(page, normalizeGitHubRepo))
+
+export const toggleRepoIncluded = (repoId: string | number, included: boolean) =>
+  apiFetch<{ repositoryId: string; included: boolean }>(`/github/repositories/${repoId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ included }),
+  })

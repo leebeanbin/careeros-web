@@ -1,5 +1,6 @@
 import { apiFetch } from './client'
 import type { CursorPage, MatchDto } from './types'
+import { normalizeCursorPage, normalizeMatch } from './adapters'
 
 const toParams = (obj: Record<string, unknown>) =>
   new URLSearchParams(
@@ -17,9 +18,10 @@ export const listMatches = (params?: {
 }) =>
   apiFetch<CursorPage<MatchDto>>(
     `/matches?${toParams((params ?? {}) as Record<string, unknown>)}`,
-  )
+  ).then((page) => normalizeCursorPage(page, normalizeMatch))
 
-export const getMatch = (matchId: number) => apiFetch<MatchDto>(`/matches/${matchId}`)
+export const getMatch = (matchId: string | number) =>
+  apiFetch<MatchDto>(`/matches/${matchId}`).then(normalizeMatch)
 
-export const hideMatch = (matchId: number) =>
+export const hideMatch = (matchId: string | number) =>
   apiFetch<void>(`/matches/${matchId}/hide`, { method: 'PATCH' })

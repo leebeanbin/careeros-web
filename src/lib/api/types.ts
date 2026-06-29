@@ -8,7 +8,7 @@ export interface CursorPage<T> {
 
 // --- Jobs ---
 export interface JobDto {
-  jobId: number
+  jobId: string | number
   title: string
   company: string
   description: string
@@ -34,7 +34,7 @@ export interface JobSearchParams {
 
 // --- Matches ---
 export interface MatchDto {
-  matchId: number
+  matchId: string | number
   job: JobDto
   totalScore: number
   skillScore: number
@@ -43,18 +43,32 @@ export interface MatchDto {
   preferenceScore: number
   freshnessScore: number
   isHidden: boolean
+  status?: string
+  stale?: boolean
+  explanation?: MatchExplanation | null
+}
+
+export interface MatchExplanation {
+  summary: string
+  matchedSkills: string[]
+  missingSkills: string[]
+  preferenceMismatches: string[]
+  generatedBy: string
 }
 
 // --- Resume ---
+export type ResumeStatus = 'UPLOADED' | 'ANALYZING' | 'ANALYZED' | 'FAILED'
+
 export interface ResumeDto {
-  resumeId: number
+  resumeId: string | number
   fileName: string
   uploadedAt: string
   isActive: boolean
+  status?: ResumeStatus
 }
 
 export interface ResumeAnalysis {
-  resumeId: number
+  resumeId: string | number
   summary: string
   strengths: string[]
   weaknesses: string[]
@@ -62,7 +76,7 @@ export interface ResumeAnalysis {
 }
 
 export interface ResumeLayoutReview {
-  resumeId: number
+  resumeId: string | number
   score: number
   feedback: string[]
 }
@@ -79,18 +93,25 @@ export interface GitHubProfile {
 }
 
 export interface GitHubRepo {
-  repoId: number
+  repoId: string | number
   name: string
+  fullName?: string
   language: string | null
   stars: number
   description: string | null
   url: string
-  isTracked: boolean
+  included: boolean
+  analysisStatus?: string
+  skills?: string[]
 }
 
 export interface SyncStatus {
   syncId: string
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED'
+  analyzedCount?: number
+  skippedCount?: number
+  failedCount?: number
+  excludedCount?: number
   startedAt: string
   completedAt: string | null
 }
@@ -113,7 +134,43 @@ export interface CandidatePreferences {
 }
 
 // --- Advisor ---
+export type ReportType = 'FULL' | 'MATCHING' | 'RESUME' | 'INTERVIEW' | 'ROADMAP'
+
+export interface AdvisorRecommendedJob {
+  jobId: string | number
+  title: string
+  companyName: string
+  score: number
+  applyUrl: string
+  narrative: string
+}
+
+export interface AdvisorMissingSkill {
+  skillName: string
+  priority: number
+  reason: string
+}
+
+export interface AdvisorNextAction {
+  priority: string
+  type: string
+  description: string
+  skillName?: string
+}
+
 export interface AdvisorDashboard {
+  // Backend actual fields
+  reportId?: string | number
+  headline?: string
+  summary?: string
+  recommendedJobs?: AdvisorRecommendedJob[]
+  applyNowList?: AdvisorRecommendedJob[]
+  missingSkills?: AdvisorMissingSkill[]
+  nextActions?: AdvisorNextAction[]
+  reportType?: ReportType
+  status?: 'PENDING' | 'COMPLETED'
+  stale?: boolean
+  // Computed/normalized fields
   totalMatches: number
   topMatchScore: number
   avgMatchScore: number
@@ -122,8 +179,16 @@ export interface AdvisorDashboard {
 }
 
 export interface AdvisorReport {
-  reportId: number
+  reportId: string | number
   status: 'PENDING' | 'COMPLETED'
+  reportType?: ReportType
+  headline?: string
+  summary?: string
+  recommendedJobs?: AdvisorRecommendedJob[]
+  applyNowList?: AdvisorRecommendedJob[]
+  missingSkills?: AdvisorMissingSkill[]
+  nextActions?: AdvisorNextAction[]
+  // Legacy fallback
   content: string | null
   createdAt: string
   completedAt: string | null
@@ -131,7 +196,7 @@ export interface AdvisorReport {
 
 // --- Notifications ---
 export interface NotificationDto {
-  notificationId: number
+  notificationId: string | number
   type: 'MATCH' | 'RESUME' | 'GITHUB' | 'ADVISOR' | 'SYSTEM'
   message: string
   isRead: boolean
@@ -146,11 +211,13 @@ export interface UserDto {
   email: string
   role: 'USER' | 'ADMIN'
   status: 'ACTIVE' | 'SUSPENDED'
+  profileImageUrl?: string | null
+  createdAt?: string
 }
 
 export interface UpdateUserDto {
   name?: string
-  email?: string
+  profileImageUrl?: string
 }
 
 // --- Admin ---

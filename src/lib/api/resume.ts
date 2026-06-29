@@ -1,22 +1,28 @@
 import { apiFetch, BASE_URL } from './client'
 import type { ResumeAnalysis, ResumeDto, ResumeLayoutReview } from './types'
+import { normalizeResume, normalizeResumeAnalysis, normalizeResumeLayoutReview } from './adapters'
 
-export const listResumes = () => apiFetch<ResumeDto[]>('/resumes')
+export const listResumes = () =>
+  apiFetch<ResumeDto[]>('/resumes').then((resumes) => resumes.map(normalizeResume))
 
-export const getResume = (resumeId: number) => apiFetch<ResumeDto>(`/resumes/${resumeId}`)
+export const getResume = (resumeId: string | number) =>
+  apiFetch<ResumeDto>(`/resumes/${resumeId}`).then(normalizeResume)
 
-export const getActiveResume = () => apiFetch<ResumeDto>('/resumes/active')
+export const getActiveResume = () => apiFetch<ResumeDto>('/resumes/active').then(normalizeResume)
 
-export const deleteResume = (resumeId: number) =>
+export const deleteResume = (resumeId: string | number) =>
   apiFetch<void>(`/resumes/${resumeId}`, { method: 'DELETE' })
 
-export const getAnalysis = (resumeId: number) =>
-  apiFetch<ResumeAnalysis>(`/resumes/${resumeId}/analysis`)
+export const setActiveResume = (resumeId: string | number) =>
+  apiFetch<void>(`/resumes/${resumeId}/active`, { method: 'PATCH' })
 
-export const getLayoutReview = (resumeId: number) =>
-  apiFetch<ResumeLayoutReview>(`/resumes/${resumeId}/layout-review`)
+export const getAnalysis = (resumeId: string | number) =>
+  apiFetch<ResumeAnalysis>(`/resumes/${resumeId}/analysis`).then(normalizeResumeAnalysis)
 
-export const getDownloadUrl = (resumeId: number) =>
+export const getLayoutReview = (resumeId: string | number) =>
+  apiFetch<ResumeLayoutReview>(`/resumes/${resumeId}/layout-review`).then(normalizeResumeLayoutReview)
+
+export const getDownloadUrl = (resumeId: string | number) =>
   `${BASE_URL}/resumes/${resumeId}/download`
 
 export const uploadResume = (
@@ -35,7 +41,7 @@ export const uploadResume = (
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         const body = JSON.parse(xhr.responseText) as Record<string, unknown>
-        resolve(('data' in body ? body.data : body) as ResumeDto)
+        resolve(normalizeResume(('data' in body ? body.data : body) as ResumeDto))
       } else {
         reject(new Error('업로드에 실패했습니다.'))
       }
