@@ -3,10 +3,21 @@ import type { NextRequest } from 'next/server'
 
 const AUTH_PATHS = [
   '/dashboard', '/jobs', '/matches', '/resume',
-  '/github', '/candidate', '/advisor', '/notifications', '/settings',
+  '/github', '/candidate', '/roadmap', '/cycles', '/advisor', '/notifications', '/settings',
 ]
 
-export function middleware(request: NextRequest) {
+function decodeJwt(token: string) {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const payload = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
+    return JSON.parse(payload)
+  } catch {
+    return null
+  }
+}
+
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const token = request.cookies.get('access_token')?.value
 
@@ -19,6 +30,15 @@ export function middleware(request: NextRequest) {
     url.pathname = '/login'
     url.searchParams.set('redirect', pathname)
     return NextResponse.redirect(url)
+  }
+
+  if (isAdminPath && token) {
+    const decoded = decodeJwt(token)
+    if (!decoded || decoded.role !== 'ADMIN') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
   }
 
   if (isPublicAuth && token) {
@@ -39,6 +59,8 @@ export const config = {
     '/resume/:path*',
     '/github/:path*',
     '/candidate/:path*',
+    '/roadmap/:path*',
+    '/cycles/:path*',
     '/advisor/:path*',
     '/notifications/:path*',
     '/settings/:path*',
