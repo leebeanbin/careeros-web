@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { MarketingHeading, MarketingSection } from "./MarketingPrimitives";
 
 interface Pillar {
   title: string;
@@ -85,32 +86,32 @@ const ChatSvg = (
 
 const pillars: Pillar[] = [
   {
-    title: "AI 매칭 엔진",
-    desc: "이력서를 분석해 최적의 채용 포지션을 자동으로 추천합니다.",
+    title: "커리어 단서 정리",
+    desc: "이력서 안의 경험과 기술을 읽고 지금 보이는 강점과 빈칸을 정리합니다.",
     svg: RadarSvg,
   },
   {
-    title: "GitHub 연동 분석",
-    desc: "GitHub 활동을 AI가 분석해 기술력을 정량화합니다.",
+    title: "작업 흔적 해석",
+    desc: "GitHub 활동에서 프로젝트 맥락과 기술 신호를 찾아 더 말하기 쉽게 바꿉니다.",
     svg: GitSvg,
   },
   {
-    title: "AI 어드바이저",
-    desc: "합격 가능성을 높이는 맞춤형 커리어 전략을 제공합니다.",
+    title: "다음 행동 제안",
+    desc: "지원, 이력서 보완, 면접 준비 중 지금 먼저 할 일을 차분히 제안합니다.",
     svg: ChatSvg,
   },
 ];
 
 export default function PillarCards() {
   return (
-    <section className="bg-[#08090A] py-20 px-16">
-      <h2 className="text-[48px] font-[510] leading-[56px] tracking-[-0.02em] mb-16 max-w-[900px]">
-        <span className="text-[#F7F8F8]">커리어의 새로운 기준. </span>
+    <MarketingSection id="features">
+      <MarketingHeading className="mb-12 max-w-[900px] lg:mb-16">
+        혼자 정리하기 어려운 커리어를,{" "}
         <span className="text-[#8A8F98]">
-          AI가 이력서와 GitHub를 분석해 최적의 포지션을 매칭하고, 합격 전략까지 제안합니다.
+          작은 단서부터 함께 읽고 다음 행동으로 이어줍니다.
         </span>
-      </h2>
-      <div className="grid grid-cols-3 gap-2">
+      </MarketingHeading>
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
         {pillars.map((p) => (
           <div
             key={p.title}
@@ -122,6 +123,6 @@ export default function PillarCards() {
           </div>
         ))}
       </div>
-    </section>
+    </MarketingSection>
   );
 }

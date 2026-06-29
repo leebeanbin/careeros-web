@@ -1,48 +1,48 @@
 import Link from "next/link";
+import { LogoWordmark } from "@/components/brand/Logo";
 
 const columns = [
   {
-    title: "제품",
+    title: "도움",
     links: [
-      { label: "매칭 엔진", href: "#" },
-      { label: "GitHub 분석", href: "#" },
-      { label: "이력서 관리", href: "#" },
-      { label: "AI 어드바이저", href: "#" },
-      { label: "가격", href: "#" },
+      { label: "커리어 정리", href: "#matching" },
+      { label: "GitHub 해석", href: "/signup" },
+      { label: "이력서 메모", href: "/signup" },
+      { label: "AI 어드바이저", href: "/signup" },
     ],
   },
   {
-    title: "서비스",
+    title: "작업 공간",
     links: [
-      { label: "채용공고", href: "/jobs" },
-      { label: "나의 매칭", href: "/matches" },
+      { label: "관심 역할", href: "/jobs" },
+      { label: "나의 흐름", href: "/matches" },
       { label: "경력 그래프", href: "/candidate" },
       { label: "알림", href: "/notifications" },
     ],
   },
   {
-    title: "회사",
+    title: "프로젝트",
     links: [
-      { label: "소개", href: "#" },
-      { label: "블로그", href: "#" },
-      { label: "채용", href: "#" },
+      { label: "소개", href: "#features" },
+      { label: "작동 방식", href: "#matching" },
+      { label: "시작하기", href: "#start" },
     ],
   },
   {
     title: "리소스",
     links: [
-      { label: "문서", href: "#" },
-      { label: "API", href: "#" },
+      { label: "개인정보", href: "/privacy" },
+      { label: "이용약관", href: "/terms" },
     ],
   },
 ];
 
 export default function Footer() {
   return (
-    <footer className="bg-[#08090A] border-t border-[rgba(255,255,255,0.08)] pt-12 pb-8 px-16">
-      <div className="grid grid-cols-[120px_repeat(4,1fr)] gap-x-10 mb-12 items-start">
+    <footer className="bg-[#08090A] border-t border-[rgba(255,255,255,0.08)] px-6 pt-12 pb-8 sm:px-8 lg:px-16">
+      <div className="mb-12 grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-[120px_repeat(4,1fr)] md:gap-x-10 md:items-start">
         <div>
-          <span className="text-[15px] font-[510] text-[#F7F8F8] opacity-80">CareerOS</span>
+          <LogoWordmark size={16} textClassName="text-[15px] font-[510] text-[#F7F8F8]" style={{ opacity: 0.8 }} />
         </div>
         {columns.map((col) => (
           <div key={col.title}>
@@ -59,7 +59,7 @@ export default function Footer() {
           </div>
         ))}
       </div>
-      <div className="flex items-center gap-5 pt-6 border-t border-[rgba(255,255,255,0.06)]">
+      <div className="flex flex-col gap-3 border-t border-[rgba(255,255,255,0.06)] pt-6 sm:flex-row sm:items-center sm:gap-5">
         <Link
           href="/privacy"
           className="text-[12px] text-[#8A8F98] transition-colors duration-[150ms] hover:text-[#F7F8F8]"
@@ -72,7 +72,7 @@ export default function Footer() {
         >
           이용약관
         </Link>
-        <span className="ml-auto text-[12px] text-[#8A8F98]">
+        <span className="text-[12px] text-[#8A8F98] sm:ml-auto">
           © 2026 CareerOS. All rights reserved.
         </span>
       </div>

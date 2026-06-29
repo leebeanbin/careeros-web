@@ -7,6 +7,7 @@ import { login } from '@/lib/api/auth'
 import { ApiError, BASE_URL } from '@/lib/api/client'
 import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
+import { LogoMark } from '@/components/brand/Logo'
 
 interface LoginForm {
   email: string
@@ -61,12 +62,7 @@ export default function LoginPage() {
         borderRadius: '16px', padding: '40px',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
-          <div style={{
-            width: '28px', height: '28px', borderRadius: '6px',
-            backgroundColor: 'rgb(99,102,241)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '14px', fontWeight: 700, color: 'white',
-          }}>C</div>
+          <LogoMark size={28} />
         </div>
 
         <h1 style={{ fontSize: '22px', fontWeight: 600, color: 'rgb(247,248,248)', margin: '0 0 8px', textAlign: 'center', letterSpacing: '-0.02em' }}>

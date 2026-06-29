@@ -1,11 +1,11 @@
 'use client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { signup } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
 import { useToastStore } from '@/stores/toastStore'
-import Spinner from '@/components/ui/Spinner'
+import { LogoMark } from '@/components/brand/Logo'
 
 interface SignupForm {
   name: string
@@ -17,8 +17,8 @@ interface SignupForm {
 export default function SignupPage() {
   const router = useRouter()
   const { add } = useToastStore()
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<SignupForm>()
-  const password = watch('password')
+  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<SignupForm>()
+  const password = useWatch({ control, name: 'password' })
 
   const onSubmit = async ({ name, email, password: pw }: SignupForm) => {
     try {
@@ -59,12 +59,7 @@ export default function SignupPage() {
         borderRadius: '16px', padding: '40px',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
-          <div style={{
-            width: '28px', height: '28px', borderRadius: '6px',
-            backgroundColor: 'rgb(99,102,241)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '14px', fontWeight: 700, color: 'white',
-          }}>C</div>
+          <LogoMark size={28} />
         </div>
 
         <h1 style={{ fontSize: '22px', fontWeight: 600, color: 'rgb(247,248,248)', margin: '0 0 8px', textAlign: 'center', letterSpacing: '-0.02em' }}>
