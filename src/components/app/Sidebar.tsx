@@ -1,10 +1,11 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { listNotifications } from '@/lib/api/notifications'
 import { getMe } from '@/lib/api/users'
 import type { CSSProperties, ReactNode } from 'react'
+import { LogoWordmark } from '@/components/brand/Logo'
 
 // ── Icons ───────────────────────────────────────────────────
 function DashIcon() {
@@ -174,6 +175,7 @@ const NAV_SUB = [
 
 export default function SidebarContent() {
   const pathname = usePathname()
+  const router = useRouter()
 
   const { data: notifPage } = useQuery({
     queryKey: ['notifications', 'unread-count'],
@@ -203,18 +205,13 @@ export default function SidebarContent() {
         flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-          <div style={{
-            width: '20px', height: '20px', borderRadius: '4px',
-            backgroundColor: 'rgb(99,102,241)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '11px', fontWeight: 700, color: 'white', flexShrink: 0,
-          }}>C</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
-            <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.9)', lineHeight: 1 }}>
-              CareerOS
-            </span>
+            <LogoWordmark
+              size={20}
+              textClassName="text-[13px] font-medium text-[rgba(255,255,255,0.9)]"
+            />
             {me?.name && (
-              <span style={{ fontSize: '11px', fontWeight: 400, color: 'rgba(255,255,255,0.4)', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ marginLeft: '28px', fontSize: '11px', fontWeight: 400, color: 'rgba(255,255,255,0.4)', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {me.name}
               </span>
             )}
@@ -222,6 +219,9 @@ export default function SidebarContent() {
         </div>
         <button
           type="button"
+          aria-label="설정 열기"
+          title="설정"
+          onClick={() => router.push('/settings')}
           style={{
             background: 'none', border: 'none',
             color: 'rgba(255,255,255,0.4)', fontSize: '16px',

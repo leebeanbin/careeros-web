@@ -25,7 +25,9 @@ const ROUTE_LABELS: Record<string, string> = {
 
 export default function Topbar() {
   const [open, setOpen] = useState(false)
+  const [confirmLogout, setConfirmLogout] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const logoutDialogRef = useRef<HTMLDialogElement>(null)
   const router = useRouter()
   const pathname = usePathname()
   const { clear } = useAuthStore()
@@ -48,10 +50,25 @@ export default function Topbar() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  useEffect(() => {
+    const dialog = logoutDialogRef.current
+    if (!dialog) return
+    if (confirmLogout && !dialog.open) {
+      dialog.showModal()
+      return
+    }
+    if (!confirmLogout && dialog.open) dialog.close()
+  }, [confirmLogout])
+
   const handleLogout = async () => {
     try { await logout() } catch { add('error', '로그아웃 중 오류가 발생했습니다.') }
     clear()
     router.push('/login')
+  }
+
+  const requestLogout = () => {
+    setOpen(false)
+    setConfirmLogout(true)
   }
 
   const title = Object.entries(ROUTE_LABELS).find(([k]) => pathname.startsWith(k))?.[1] ?? ''
@@ -68,7 +85,7 @@ export default function Topbar() {
       flexShrink: 0,
       position: 'sticky',
       top: 0,
-      zIndex: 10,
+      zIndex: 200,
     }}>
       <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>
         {title}
@@ -129,7 +146,7 @@ export default function Topbar() {
                 설정
               </Link>
               <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.06)' }} />
-              <button onClick={handleLogout} style={{
+              <button onClick={requestLogout} style={{
                 display: 'block', width: '100%', padding: '8px 12px',
                 textAlign: 'left', fontSize: '13px',
                 color: 'rgba(255,99,99,0.8)',
@@ -143,6 +160,90 @@ export default function Topbar() {
           )}
         </div>
       </div>
+      <dialog
+        ref={logoutDialogRef}
+        aria-labelledby="logout-confirm-title"
+        onClose={() => setConfirmLogout(false)}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) setConfirmLogout(false)
+        }}
+        style={{
+          width: 'min(360px, calc(100vw - 48px))',
+          borderRadius: '12px',
+          border: '1px solid rgba(255,255,255,0.1)',
+          backgroundColor: 'rgb(17,18,19)',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.55)',
+          padding: '22px',
+          color: 'rgb(247,248,248)',
+          margin: 'auto',
+        }}
+      >
+        <form method="dialog">
+          <h2 id="logout-confirm-title" style={{
+            margin: '0 0 8px',
+            fontSize: '16px',
+            fontWeight: 600,
+            color: 'rgb(247,248,248)',
+          }}>
+            로그아웃할까요?
+          </h2>
+          <p style={{
+            margin: '0 0 20px',
+            fontSize: '13px',
+            lineHeight: 1.6,
+            color: 'rgb(138,143,152)',
+          }}>
+            현재 계정 세션을 종료하고 로그인 화면으로 이동합니다.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setConfirmLogout(false)}
+              style={{
+                height: '32px',
+                padding: '0 13px',
+                borderRadius: '6px',
+                border: '1px solid rgba(255,255,255,0.12)',
+                backgroundColor: 'transparent',
+                color: 'rgba(255,255,255,0.65)',
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              style={{
+                height: '32px',
+                padding: '0 13px',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor: 'rgb(220,38,38)',
+                color: 'white',
+                fontSize: '13px',
+                fontWeight: 500,
+                cursor: 'pointer',
+              }}
+            >
+              로그아웃
+            </button>
+          </div>
+        </form>
+      </dialog>
+      {confirmLogout && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 999,
+            backgroundColor: 'rgba(0,0,0,0.62)',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
     </header>
   )
 }
