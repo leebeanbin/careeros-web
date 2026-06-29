@@ -1,16 +1,19 @@
 'use client'
+import { Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { listAiCalls, getAiCallStats } from '@/lib/api/admin'
 import type { AiCallDto } from '@/lib/api/types'
 import CursorList from '@/components/ui/CursorList'
+import { AgentIntro, AgentStatusStrip } from '@/components/app/AgentPrimitives'
 
-export default function AdminAiCallsPage() {
+function AdminAiCallsPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
   const useCase = searchParams.get('useCase') ?? ''
   const success = searchParams.get('success') ?? ''
+  const formatRate = (rate: number) => `${(rate > 1 ? rate : rate * 100).toFixed(1)}%`
 
   const { data: stats } = useQuery({
     queryKey: ['admin', 'ai-calls', 'stats'],
@@ -19,7 +22,8 @@ export default function AdminAiCallsPage() {
 
   const setParam = (key: string, value: string) => {
     const p = new URLSearchParams(searchParams.toString())
-    value ? p.set(key, value) : p.delete(key)
+    if (value) p.set(key, value)
+    else p.delete(key)
     router.push(`/admin/ai-calls?${p.toString()}`)
   }
 
@@ -32,36 +36,22 @@ export default function AdminAiCallsPage() {
 
   return (
     <div>
-      {/* Sticky header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        height: '48px', display: 'flex', alignItems: 'center',
-        padding: '0 24px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        backgroundColor: 'rgb(8,9,10)',
-      }}>
-        <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>AI 호출 이력</span>
-      </div>
-
       <div style={{ padding: '24px' }}>
+        <AgentIntro
+          eyebrow="AI ops"
+          title="AI 호출 상태를 관찰합니다"
+          description="성공률, 지연 시간, 오류 메시지를 운영 로그처럼 추적합니다."
+          steps={['호출량 확인', '실패 필터링', '지연 시간 점검']}
+        />
         {/* Stats */}
         {stats && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
-            {[
-              { label: '총 호출', value: stats.totalCalls.toLocaleString() },
-              { label: '성공률', value: `${(stats.successRate * 100).toFixed(1)}%` },
-              { label: '평균 지연', value: `${stats.avgLatencyMs}ms` },
-            ].map((s) => (
-              <div key={s.label} style={{
-                backgroundColor: 'rgb(13,14,15)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: '8px', padding: '16px',
-              }}>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '6px' }}>{s.label}</div>
-                <div style={{ fontSize: '22px', fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>{s.value}</div>
-              </div>
-            ))}
-          </div>
+          <AgentStatusStrip
+            items={[
+              { label: '총 호출', value: stats.totalCalls.toLocaleString(), tone: 'indigo' },
+              { label: '성공률', value: formatRate(stats.successRate), tone: 'green' },
+              { label: '평균 지연', value: `${stats.avgLatencyMs}ms`, tone: stats.avgLatencyMs > 2000 ? 'amber' : 'muted' },
+            ]}
+          />
         )}
 
         {/* Filter bar */}
@@ -131,5 +121,13 @@ export default function AdminAiCallsPage() {
         />
       </div>
     </div>
+  )
+}
+
+export default function AdminAiCallsPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminAiCallsPageContent />
+    </Suspense>
   )
 }

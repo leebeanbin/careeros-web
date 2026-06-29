@@ -1,10 +1,12 @@
 'use client'
+import { Suspense } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { listUsers, updateUserRole, updateUserStatus } from '@/lib/api/admin'
 import type { UserDto } from '@/lib/api/types'
 import CursorList from '@/components/ui/CursorList'
 import { useToastStore } from '@/stores/toastStore'
+import { AgentIntro } from '@/components/app/AgentPrimitives'
 
 function Badge({ children, variant }: { children: React.ReactNode; variant: 'green' | 'red' | 'indigo' | 'gray' }) {
   const colors = {
@@ -36,7 +38,7 @@ const dangerBtn: React.CSSProperties = {
   color: 'rgba(255,99,99,0.7)',
 }
 
-export default function AdminUsersPage() {
+function AdminUsersPageContent() {
   const qc = useQueryClient()
   const { add } = useToastStore()
   const searchParams = useSearchParams()
@@ -47,7 +49,8 @@ export default function AdminUsersPage() {
 
   const setParam = (key: string, value: string) => {
     const p = new URLSearchParams(searchParams.toString())
-    value ? p.set(key, value) : p.delete(key)
+    if (value) p.set(key, value)
+    else p.delete(key)
     router.push(`/admin/users?${p.toString()}`)
   }
 
@@ -67,17 +70,14 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      {/* Sticky header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        height: '48px', display: 'flex', alignItems: 'center',
-        padding: '0 24px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        backgroundColor: 'rgb(8,9,10)',
-      }}>
-        <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>사용자 관리</span>
+      <div style={{ padding: '16px 24px 0' }}>
+        <AgentIntro
+          eyebrow="Admin agent"
+          title="사용자 상태를 운영 관점으로 정리합니다"
+          description="검색, 상태 필터, 역할 변경을 한 흐름 안에서 처리합니다."
+          steps={['사용자 검색', '상태 필터', '역할/상태 변경']}
+        />
       </div>
-
       {/* Filter bar */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '8px',
@@ -170,5 +170,13 @@ export default function AdminUsersPage() {
         />
       </div>
     </div>
+  )
+}
+
+export default function AdminUsersPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminUsersPageContent />
+    </Suspense>
   )
 }

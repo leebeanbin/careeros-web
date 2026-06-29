@@ -1,9 +1,10 @@
 'use client'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { listAdminJobs, updateJobStatus } from '@/lib/api/admin'
+import { listAdminJobs, updateAdminJobStatus } from '@/lib/api/admin'
 import type { AdminJobDto } from '@/lib/api/types'
 import CursorList from '@/components/ui/CursorList'
 import { useToastStore } from '@/stores/toastStore'
+import { AgentIntro } from '@/components/app/AgentPrimitives'
 
 function StatusBadge({ status }: { status: string }) {
   const cfg: Record<string, { bg: string; color: string; label: string }> = {
@@ -39,26 +40,21 @@ export default function AdminJobsPage() {
   const { add } = useToastStore()
 
   const { mutate: changeStatus } = useMutation({
-    mutationFn: ({ jobId, status }: { jobId: number; status: string }) =>
-      updateJobStatus(jobId, status),
+    mutationFn: ({ jobId, status }: { jobId: string | number; status: string }) =>
+      updateAdminJobStatus(jobId, status),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'jobs'] }); add('success', '상태 변경됨') },
     onError: () => add('error', '변경 실패'),
   })
 
   return (
     <div>
-      {/* Sticky header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        height: '48px', display: 'flex', alignItems: 'center',
-        padding: '0 24px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        backgroundColor: 'rgb(8,9,10)',
-      }}>
-        <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>공고 관리</span>
-      </div>
-
-      <div style={{ padding: '0 24px' }}>
+      <div style={{ padding: '16px 24px 0' }}>
+        <AgentIntro
+          eyebrow="Admin agent"
+          title="공고 운영 상태를 정리합니다"
+          description="활성, 마감, 초안 상태를 빠르게 확인하고 운영 액션으로 이어갑니다."
+          steps={['상태 확인', '조회/지원 신호 확인', '운영 액션']}
+        />
         <CursorList<AdminJobDto>
           queryKey={['admin', 'jobs']}
           fetcher={(cursor) => listAdminJobs({ cursor })}
