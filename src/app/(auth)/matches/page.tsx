@@ -1,4 +1,5 @@
 'use client'
+import { Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
@@ -9,6 +10,7 @@ import { MatchStatusIcon } from '@/components/app/MatchStatusIcon'
 import { GroupHeader } from '@/components/app/GroupHeader'
 import { FilterPill } from '@/components/app/FilterPill'
 import { useToastStore } from '@/stores/toastStore'
+import { AgentIntro, AgentStatusStrip } from '@/components/app/AgentPrimitives'
 
 const SCORE_GROUPS = [
   { label: '우수 매칭', min: 80, max: 100 },
@@ -16,6 +18,24 @@ const SCORE_GROUPS = [
   { label: '보통 매칭', min: 50, max: 64 },
   { label: '낮은 매칭', min: 0,  max: 49 },
 ]
+
+const MATCH_FILTERS = [
+  { value: 'all', label: '전체 점수', min: 0 },
+  { value: 'strong', label: '80점 이상', min: 80 },
+  { value: 'good', label: '65점 이상', min: 65 },
+  { value: 'possible', label: '50점 이상', min: 50 },
+] as const
+
+const MATCH_GROUPS = [
+  { value: 'score', label: '점수별 그룹' },
+  { value: 'company', label: '회사별 그룹' },
+  { value: 'none', label: '그룹 없음' },
+] as const
+
+const MATCH_VIEWS = [
+  { value: 'comfortable', label: '넓게 보기' },
+  { value: 'compact', label: '촘촘히 보기' },
+] as const
 
 function ScoreBadge({ score }: { score: number }) {
   const [bg, color] =
@@ -33,12 +53,24 @@ function ScoreBadge({ score }: { score: number }) {
   )
 }
 
-function MatchRow({ m, showHide, onHide }: { m: MatchDto; showHide: boolean; onHide: (id: number) => void }) {
+function MatchRow({
+  m,
+  showHide,
+  onHide,
+  view,
+}: {
+  m: MatchDto
+  showHide: boolean
+  onHide: (id: string | number) => void
+  view: string
+}) {
+  const isCompact = view === 'compact'
   return (
     <div
       style={{
         display: 'flex', alignItems: 'center', gap: '8px',
-        height: '36px', padding: '0 16px',
+        minHeight: isCompact ? '32px' : '42px',
+        padding: isCompact ? '0 16px' : '6px 16px',
         borderBottom: '1px solid rgba(255,255,255,0.03)',
       }}
       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
@@ -52,7 +84,9 @@ function MatchRow({ m, showHide, onHide }: { m: MatchDto; showHide: boolean; onH
         <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {m.job.title}
         </span>
-        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>{m.job.company}</span>
+        {!isCompact && (
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>{m.job.company}</span>
+        )}
       </Link>
       <ScoreBadge score={m.totalScore} />
       {showHide && (
@@ -73,14 +107,18 @@ function MatchRow({ m, showHide, onHide }: { m: MatchDto; showHide: boolean; onH
   )
 }
 
-export default function MatchesPage() {
+function MatchesPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const qc = useQueryClient()
   const { add } = useToastStore()
 
   const tab = searchParams.get('tab') ?? 'all'
+  const filter = searchParams.get('filter') ?? 'all'
+  const group = searchParams.get('group') ?? 'score'
+  const view = searchParams.get('view') ?? 'comfortable'
   const hideHidden = tab === 'all'
+  const filterMeta = MATCH_FILTERS.find((f) => f.value === filter) ?? MATCH_FILTERS[0]
 
   const { data: allMatches } = useQuery({
     queryKey: ['matches', { all: true }],
@@ -89,7 +127,7 @@ export default function MatchesPage() {
   })
 
   const { mutate: hide } = useMutation({
-    mutationFn: (matchId: number) => hideMatch(matchId),
+    mutationFn: (matchId: string | number) => hideMatch(matchId),
     onMutate: async (matchId) => {
       await qc.cancelQueries({ queryKey: ['matches'] })
       const prev = qc.getQueryData(['matches', { hideHidden }])
@@ -117,12 +155,60 @@ export default function MatchesPage() {
 
   const setTab = (value: string) => {
     const p = new URLSearchParams(searchParams.toString())
-    value === 'all' ? p.delete('tab') : p.set('tab', value)
+    if (value === 'all') p.delete('tab')
+    else p.set('tab', value)
     router.push(`/matches?${p.toString()}`)
   }
 
+  const setParam = (key: string, value: string, defaultValue: string) => {
+    const p = new URLSearchParams(searchParams.toString())
+    if (value === defaultValue) p.delete(key)
+    else p.set(key, value)
+    router.push(`/matches?${p.toString()}`)
+  }
+
+  const cycleParam = <T extends readonly { value: string }[]>(key: string, values: T, current: string) => {
+    const index = values.findIndex((item) => item.value === current)
+    const next = values[(index + 1) % values.length].value
+    setParam(key, next, values[0].value)
+  }
+
+  const visibleMatches = (allMatches?.content ?? []).filter((m) => m.totalScore >= filterMeta.min)
+
+  const companyGroups = [...new Set(visibleMatches.map((m) => m.job.company || '회사 미상'))]
+    .map((label) => ({
+      label,
+      items: visibleMatches.filter((m) => (m.job.company || '회사 미상') === label),
+    }))
+
+  const groupedMatches =
+    group === 'none'
+      ? [{ label: '전체 매칭', items: visibleMatches }]
+      : group === 'company'
+        ? companyGroups
+        : SCORE_GROUPS.map((g) => ({
+            label: g.label,
+            items: visibleMatches.filter((m) => m.totalScore >= g.min && m.totalScore <= g.max),
+          }))
+
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+      <div style={{ padding: '16px 16px 0' }}>
+        <AgentIntro
+          title="매칭 근거를 우선순위로 정리했어요"
+          description="점수, 회사, 보기 밀도를 바꾸면서 지원할 흐름과 보완할 흐름을 빠르게 분리합니다."
+          steps={['점수 필터링', '그룹 재정렬', '숨김 처리']}
+        />
+        {tab === 'all' && (
+          <AgentStatusStrip
+            items={[
+              { label: '보이는 매칭', value: visibleMatches.length, tone: 'green' },
+              { label: '필터 기준', value: filterMeta.label, tone: filter === 'all' ? 'muted' : 'indigo' },
+              { label: '보기 방식', value: view === 'compact' ? '촘촘히' : '넓게', tone: 'amber' },
+            ]}
+          />
+        )}
+      </div>
       {/* Sticky header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
@@ -150,25 +236,37 @@ export default function MatchesPage() {
         ))}
         <div style={{ flex: 1 }} />
         <div style={{ display: 'flex', gap: '6px' }}>
-          <FilterPill label="필터" />
-          <FilterPill label="그룹" />
-          <FilterPill label="보기" />
+          <FilterPill
+            label={`필터: ${filterMeta.label}`}
+            onClick={() => cycleParam('filter', MATCH_FILTERS, filter)}
+            active={filter !== 'all'}
+            title="매칭 점수 기준을 변경합니다"
+          />
+          <FilterPill
+            label={MATCH_GROUPS.find((g) => g.value === group)?.label ?? '점수별 그룹'}
+            onClick={() => cycleParam('group', MATCH_GROUPS, group)}
+            active={group !== 'score'}
+            title="매칭 목록 그룹 방식을 변경합니다"
+          />
+          <FilterPill
+            label={MATCH_VIEWS.find((v) => v.value === view)?.label ?? '넓게 보기'}
+            onClick={() => cycleParam('view', MATCH_VIEWS, view)}
+            active={view !== 'comfortable'}
+            title="매칭 목록 표시 밀도를 변경합니다"
+          />
         </div>
       </div>
 
       {/* All tab: grouped by score */}
       {tab === 'all' ? (
         <div>
-          {SCORE_GROUPS.map((g) => {
-            const items = (allMatches?.content ?? []).filter(
-              (m) => m.totalScore >= g.min && m.totalScore <= g.max,
-            )
+          {groupedMatches.map(({ label, items }) => {
             if (!items.length) return null
             return (
-              <div key={g.label}>
-                <GroupHeader label={g.label} count={items.length} />
+              <div key={label}>
+                {group !== 'none' && <GroupHeader label={label} count={items.length} />}
                 {items.map((m) => (
-                  <MatchRow key={m.matchId} m={m} showHide onHide={(id) => hide(id)} />
+                  <MatchRow key={m.matchId} m={m} showHide onHide={(id) => hide(id)} view={view} />
                 ))}
               </div>
             )
@@ -178,9 +276,9 @@ export default function MatchesPage() {
               로딩 중...
             </div>
           )}
-          {allMatches && !allMatches.content.length && (
+          {allMatches && !visibleMatches.length && (
             <div style={{ padding: '32px', textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
-              매칭된 공고가 없습니다
+              조건에 맞는 매칭이 없습니다
             </div>
           )}
         </div>
@@ -192,12 +290,20 @@ export default function MatchesPage() {
             fetcher={(cursor) => listMatches({ cursor, size: 30, hideHidden: false })}
             className=""
             renderItem={(m) => (
-              <MatchRow key={m.matchId} m={m} showHide={false} onHide={() => {}} />
+              <MatchRow key={m.matchId} m={m} showHide={false} onHide={() => {}} view={view} />
             )}
             emptyTitle="숨긴 매칭이 없습니다"
           />
         </div>
       )}
     </div>
+  )
+}
+
+export default function MatchesPage() {
+  return (
+    <Suspense fallback={null}>
+      <MatchesPageContent />
+    </Suspense>
   )
 }

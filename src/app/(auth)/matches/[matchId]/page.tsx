@@ -1,10 +1,13 @@
 'use client'
-import { useParams } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { getMatch } from '@/lib/api/matches'
+import { getMatch, hideMatch } from '@/lib/api/matches'
 import ScoreBreakdownChart from '@/components/app/ScoreBreakdownChart'
 import { MatchStatusIcon } from '@/components/app/MatchStatusIcon'
+import { useToastStore } from '@/stores/toastStore'
+import { AgentIntro, AgentPanel, AgentStepList } from '@/components/app/AgentPrimitives'
 
 const AXES = [
   { key: 'skillScore' as const,      label: '기술 스택' },
@@ -34,10 +37,30 @@ function ScoreBadge({ score }: { score: number }) {
 
 export default function MatchDetailPage() {
   const { matchId } = useParams<{ matchId: string }>()
+  const router = useRouter()
+  const qc = useQueryClient()
+  const { add } = useToastStore()
+  const [menuOpen, setMenuOpen] = useState(false)
   const { data: match, isLoading } = useQuery({
-    queryKey: ['matches', Number(matchId)],
-    queryFn: () => getMatch(Number(matchId)),
+    queryKey: ['matches', matchId],
+    queryFn: () => getMatch(matchId),
   })
+
+  const { mutate: hide, isPending: hiding } = useMutation({
+    mutationFn: () => hideMatch(matchId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['matches'] })
+      add('success', '매칭을 숨겼습니다.')
+      router.push('/matches')
+    },
+    onError: () => add('error', '매칭 숨기기에 실패했습니다.'),
+  })
+
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(window.location.href)
+    setMenuOpen(false)
+    add('success', '매칭 링크를 복사했습니다.')
+  }
 
   if (isLoading) {
     return (
@@ -84,13 +107,74 @@ export default function MatchDetailPage() {
             {match.job.title}
           </span>
         </div>
-        <button type="button" style={{ background: 'none', border: 'none', color: 'rgb(138,143,152)', cursor: 'pointer', fontSize: '16px', letterSpacing: '1px' }}>···</button>
+        <div style={{ position: 'relative' }}>
+          <button
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+            style={{ background: 'none', border: 'none', color: 'rgb(138,143,152)', cursor: 'pointer', fontSize: '16px', letterSpacing: '1px' }}
+          >
+            ···
+          </button>
+          {menuOpen && (
+            <div
+              role="menu"
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: 'calc(100% + 6px)',
+                width: '168px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255,255,255,0.08)',
+                backgroundColor: 'rgb(17,18,19)',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                zIndex: 40,
+                overflow: 'hidden',
+              }}
+            >
+              {[
+                { label: hiding ? '숨기는 중...' : '매칭 숨기기', onClick: () => hide(), danger: true },
+                { label: '링크 복사', onClick: copyLink },
+                { label: '공고 상세 보기', onClick: () => router.push(`/jobs/${match.job.jobId}`) },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  role="menuitem"
+                  disabled={item.label === '숨기는 중...'}
+                  onClick={() => { item.onClick(); if (item.label !== '링크 복사') setMenuOpen(false) }}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '9px 12px',
+                    border: 'none',
+                    background: 'transparent',
+                    color: item.danger ? 'rgba(255,99,99,0.8)' : 'rgba(255,255,255,0.72)',
+                    textAlign: 'left',
+                    fontSize: '13px',
+                    cursor: item.label === '숨기는 중...' ? 'not-allowed' : 'pointer',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 2-column body */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Left: score content */}
         <div style={{ flex: 1, overflow: 'auto', padding: '32px 40px' }}>
+          <AgentIntro
+            title="이 매칭의 근거를 분해합니다"
+            description="총점보다 중요한 축별 근거와 보완 지점을 먼저 읽습니다."
+            steps={['점수 축 분해', '역할 적합도 확인', '지원 판단']}
+          />
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
             <MatchStatusIcon score={match.totalScore} size={16} />
             <ScoreBadge score={match.totalScore} />
@@ -104,10 +188,10 @@ export default function MatchDetailPage() {
           </p>
 
           {/* Score chart */}
-          <div style={{
+          <AgentPanel style={{
             backgroundColor: 'rgb(13,14,15)',
             border: '1px solid rgba(255,255,255,0.06)',
-            borderRadius: '8px', padding: '20px', marginBottom: '20px',
+            padding: '20px', marginBottom: '20px',
           }}>
             <div style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
               매칭 점수 분포
@@ -119,10 +203,103 @@ export default function MatchDetailPage() {
               preferenceScore={match.preferenceScore}
               freshnessScore={match.freshnessScore}
             />
-          </div>
+          </AgentPanel>
+
+          <AgentPanel delay={80} style={{ padding: '16px', marginBottom: '20px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>Agent next read</div>
+            <AgentStepList
+              steps={[
+                { label: '강한 근거', detail: `기술 스택 ${match.skillScore}점, 경험 근거 ${match.evidenceScore}점 축을 지원서에 먼저 배치합니다.`, tone: 'green' },
+                { label: '주의할 간극', detail: `선호도 ${match.preferenceScore}점과 최신성 ${match.freshnessScore}점을 확인해 무리한 지원인지 점검합니다.`, tone: 'amber' },
+                { label: '다음 행동', detail: match.totalScore >= 80 ? '바로 지원 준비 후보로 올려도 좋습니다.' : '이력서 근거를 보강한 뒤 다시 비교하는 편이 좋습니다.' },
+              ]}
+            />
+          </AgentPanel>
+
+          {/* AI 매칭 해설 (Backend Explanation) */}
+          {match.explanation && (
+            <AgentPanel style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              padding: '20px',
+              marginBottom: '20px',
+            }}>
+              <div style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
+                AI 매칭 해설
+              </div>
+              <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.75)', lineHeight: 1.6, margin: '0 0 16px 0', whiteSpace: 'pre-wrap' }}>
+                {match.explanation.summary}
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {match.explanation.matchedSkills && match.explanation.matchedSkills.length > 0 && (
+                  <div>
+                    <span style={{ fontSize: '11px', color: 'rgb(34, 197, 94)', display: 'block', marginBottom: '6px', fontWeight: 500 }}>
+                      일치하는 스킬
+                    </span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {match.explanation.matchedSkills.map((s, idx) => (
+                        <span key={idx} style={{
+                          fontSize: '11px',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                          color: 'rgb(34, 197, 94)',
+                        }}>
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {match.explanation.missingSkills && match.explanation.missingSkills.length > 0 && (
+                  <div>
+                    <span style={{ fontSize: '11px', color: 'rgb(239, 68, 68)', display: 'block', marginBottom: '6px', fontWeight: 500 }}>
+                      부족한 스킬
+                    </span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {match.explanation.missingSkills.map((s, idx) => (
+                        <span key={idx} style={{
+                          fontSize: '11px',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                          color: 'rgb(239, 68, 68)',
+                        }}>
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {match.explanation.preferenceMismatches && match.explanation.preferenceMismatches.length > 0 && (
+                  <div>
+                    <span style={{ fontSize: '11px', color: 'rgb(234, 179, 8)', display: 'block', marginBottom: '6px', fontWeight: 500 }}>
+                      선호도 불일치 항목
+                    </span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {match.explanation.preferenceMismatches.map((m, idx) => (
+                        <span key={idx} style={{
+                          fontSize: '11px',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                          color: 'rgb(234, 179, 8)',
+                        }}>
+                          {m}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </AgentPanel>
+          )}
 
           {/* 5-axis bars */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
             {AXES.map((a) => (
               <div key={a.key} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ width: '60px', fontSize: '11px', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>

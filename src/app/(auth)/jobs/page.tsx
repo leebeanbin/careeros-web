@@ -1,4 +1,5 @@
 'use client'
+import { Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { listJobs, listSavedJobs, saveJob, unsaveJob } from '@/lib/api/jobs'
@@ -9,7 +10,9 @@ import { RemoteTypeIcon } from '@/components/app/RemoteTypeIcon'
 import { CompanyAvatar } from '@/components/app/CompanyAvatar'
 import { LabelPill } from '@/components/app/LabelPill'
 import { FilterPill } from '@/components/app/FilterPill'
+import { GroupHeader } from '@/components/app/GroupHeader'
 import { useToastStore } from '@/stores/toastStore'
+import { AgentIntro, AgentStatusStrip } from '@/components/app/AgentPrimitives'
 
 const ROLE_COLORS: Record<string, string> = {
   BACKEND:  'rgb(59,130,246)',
@@ -21,7 +24,24 @@ const ROLE_COLORS: Record<string, string> = {
   MOBILE:   'rgb(236,72,153)',
 }
 
-export default function JobsPage() {
+const JOB_GROUPS = [
+  { value: 'none', label: '그룹 없음' },
+  { value: 'role', label: '직무별 그룹' },
+  { value: 'remote', label: '근무형태별 그룹' },
+] as const
+
+const JOB_VIEWS = [
+  { value: 'comfortable', label: '넓게 보기' },
+  { value: 'compact', label: '촘촘히 보기' },
+] as const
+
+const REMOTE_LABELS: Record<string, string> = {
+  REMOTE: '원격',
+  HYBRID: '하이브리드',
+  ON_SITE: '오프사이트',
+}
+
+function JobsPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const qc = useQueryClient()
@@ -31,12 +51,17 @@ export default function JobsPage() {
   const keyword = searchParams.get('keyword') ?? ''
   const roleCategory = searchParams.get('roleCategory') ?? ''
   const remoteType = searchParams.get('remoteType') ?? ''
+  const showFilters = searchParams.get('filters') === 'open'
+  const group = searchParams.get('group') ?? 'none'
+  const view = searchParams.get('view') ?? 'comfortable'
+  const isCompact = view === 'compact'
 
   const { data: roles } = useQuery({ queryKey: ['taxonomy', 'roles'], queryFn: listRoles })
 
   const setParam = (key: string, value: string) => {
     const p = new URLSearchParams(searchParams.toString())
-    value ? p.set(key, value) : p.delete(key)
+    if (value) p.set(key, value)
+    else p.delete(key)
     p.delete('cursor')
     router.push(`/jobs?${p.toString()}`)
   }
@@ -47,19 +72,65 @@ export default function JobsPage() {
     router.push(`/jobs?${p.toString()}`)
   }
 
+  const setUiParam = (key: string, value: string, defaultValue: string) => {
+    const p = new URLSearchParams(searchParams.toString())
+    if (value === defaultValue) p.delete(key)
+    else p.set(key, value)
+    router.push(`/jobs?${p.toString()}`)
+  }
+
+  const cycleParam = <T extends readonly { value: string }[]>(key: string, values: T, current: string) => {
+    const index = values.findIndex((item) => item.value === current)
+    const next = values[(index + 1) % values.length].value
+    setUiParam(key, next, values[0].value)
+  }
+
+  const toggleFilters = () => {
+    const p = new URLSearchParams(searchParams.toString())
+    if (showFilters) p.delete('filters')
+    else p.set('filters', 'open')
+    router.push(`/jobs?${p.toString()}`)
+  }
+
   const { mutate: toggleSave } = useMutation({
-    mutationFn: ({ jobId, saved }: { jobId: number; saved: boolean }) =>
+    mutationFn: ({ jobId, saved }: { jobId: string | number; saved: boolean }) =>
       saved ? unsaveJob(jobId) : saveJob(jobId),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['jobs'] }); add('success', '저장 상태가 변경되었습니다.') },
     onError: () => add('error', '저장에 실패했습니다.'),
   })
+
+  const groupedQueryParams = {
+    keyword: keyword || undefined,
+    roleCategory: roleCategory || undefined,
+    remoteType: remoteType || undefined,
+    size: 100,
+  }
+
+  const { data: groupedJobs } = useQuery({
+    queryKey: ['jobs', 'grouped', tab, group, groupedQueryParams],
+    queryFn: () => tab === 'saved' ? listSavedJobs({ size: 100 }) : listJobs(groupedQueryParams),
+    enabled: group !== 'none',
+  })
+
+  const groupedItems = groupedJobs?.content ?? []
+  const groupedSections =
+    group === 'role'
+      ? [...new Set(groupedItems.map((job) => job.roleCategory || '직무 미상'))].map((label) => ({
+          label,
+          items: groupedItems.filter((job) => (job.roleCategory || '직무 미상') === label),
+        }))
+      : [...new Set(groupedItems.map((job) => REMOTE_LABELS[job.remoteType] ?? job.remoteType ?? '근무형태 미상'))].map((label) => ({
+          label,
+          items: groupedItems.filter((job) => (REMOTE_LABELS[job.remoteType] ?? job.remoteType ?? '근무형태 미상') === label),
+        }))
 
   const renderJob = (job: JobDto) => (
     <div
       key={job.jobId}
       style={{
         display: 'flex', alignItems: 'center', gap: '8px',
-        height: '36px', padding: '0 16px',
+        minHeight: isCompact ? '32px' : '40px',
+        padding: isCompact ? '0 16px' : '5px 16px',
         borderBottom: '1px solid rgba(255,255,255,0.03)',
         cursor: 'pointer',
       }}
@@ -69,8 +140,15 @@ export default function JobsPage() {
     >
       <RemoteTypeIcon remoteType={job.remoteType} size={14} />
       <CompanyAvatar company={job.company} size={18} />
-      <span style={{ flex: 1, fontSize: '13px', color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {job.title}
+      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1px' }}>
+        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {job.title}
+        </span>
+        {!isCompact && (
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {job.company}
+          </span>
+        )}
       </span>
       {job.roleCategory && (
         <LabelPill label={job.roleCategory} color={ROLE_COLORS[job.roleCategory] ?? 'rgb(138,143,152)'} />
@@ -99,6 +177,20 @@ export default function JobsPage() {
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+      <div style={{ padding: '16px 24px 0' }}>
+        <AgentIntro
+          title="관심 역할 후보를 정리하는 중"
+          description="키워드, 직무, 근무 형태 신호를 조합해 지금 볼 만한 공고 흐름을 좁힙니다."
+          steps={['검색어 해석', '필터 적용', '저장 후보 분류']}
+        />
+        <AgentStatusStrip
+          items={[
+            { label: '검색어', value: keyword || '전체', tone: keyword ? 'indigo' : 'muted' },
+            { label: '직무', value: roleCategory || '전체', tone: roleCategory ? 'green' : 'muted' },
+            { label: '근무형태', value: remoteType ? REMOTE_LABELS[remoteType] ?? remoteType : '전체', tone: remoteType ? 'amber' : 'muted' },
+          ]}
+        />
+      </div>
       {/* Sticky header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
@@ -107,7 +199,6 @@ export default function JobsPage() {
         borderBottom: '1px solid rgba(255,255,255,0.06)',
         backgroundColor: 'rgb(8,9,10)',
       }}>
-        <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)', flexShrink: 0 }}>채용공고</span>
         <input
           value={keyword}
           onChange={(e) => setParam('keyword', e.target.value)}
@@ -115,9 +206,24 @@ export default function JobsPage() {
           style={{ ...filterInput, flex: 1, maxWidth: '240px' }}
         />
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
-          <FilterPill label="필터" />
-          <FilterPill label="그룹" />
-          <FilterPill label="보기" />
+          <FilterPill
+            label={showFilters ? '필터 닫기' : '필터 열기'}
+            onClick={toggleFilters}
+            active={showFilters || Boolean(roleCategory || remoteType)}
+            title="상세 필터를 열거나 닫습니다"
+          />
+          <FilterPill
+            label={JOB_GROUPS.find((g) => g.value === group)?.label ?? '그룹 없음'}
+            onClick={() => cycleParam('group', JOB_GROUPS, group)}
+            active={group !== 'none'}
+            title="공고 목록 그룹 방식을 변경합니다"
+          />
+          <FilterPill
+            label={JOB_VIEWS.find((v) => v.value === view)?.label ?? '넓게 보기'}
+            onClick={() => cycleParam('view', JOB_VIEWS, view)}
+            active={view !== 'comfortable'}
+            title="공고 목록 표시 밀도를 변경합니다"
+          />
         </div>
       </div>
 
@@ -144,7 +250,7 @@ export default function JobsPage() {
       </div>
 
       {/* Filter bar — all tab only */}
-      {tab === 'all' && (
+      {tab === 'all' && showFilters && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: '8px',
           padding: '10px 24px',
@@ -184,10 +290,29 @@ export default function JobsPage() {
 
       {/* List */}
       <div>
-        {tab === 'saved' ? (
+        {group !== 'none' ? (
+          <div>
+            {!groupedJobs && (
+              <div style={{ padding: '32px', textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
+                로딩 중...
+              </div>
+            )}
+            {groupedJobs && !groupedItems.length && (
+              <div style={{ padding: '32px', textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
+                공고가 없습니다
+              </div>
+            )}
+            {groupedSections.map(({ label, items }) => (
+              <div key={label}>
+                <GroupHeader label={label} count={items.length} />
+                {items.map(renderJob)}
+              </div>
+            ))}
+          </div>
+        ) : tab === 'saved' ? (
           <CursorList<JobDto>
             queryKey={['jobs', 'saved']}
-            fetcher={(cursor) => listSavedJobs(cursor)}
+            fetcher={(cursor) => listSavedJobs({ cursor, size: 30 })}
             renderItem={renderJob}
             emptyTitle="저장된 공고가 없습니다"
             className=""
@@ -209,5 +334,13 @@ export default function JobsPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function JobsPage() {
+  return (
+    <Suspense fallback={null}>
+      <JobsPageContent />
+    </Suspense>
   )
 }

@@ -1,9 +1,11 @@
 'use client'
+import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getJob, getSimilarJobs, saveJob, unsaveJob, recordApplyClick } from '@/lib/api/jobs'
 import { CompanyAvatar } from '@/components/app/CompanyAvatar'
 import { useToastStore } from '@/stores/toastStore'
+import { AgentIntro, AgentPanel, AgentStepList } from '@/components/app/AgentPrimitives'
 
 const REMOTE_LABELS: Record<string, string> = {
   REMOTE: '원격', HYBRID: '하이브리드', ON_SITE: '오프사이트',
@@ -18,10 +20,11 @@ const badgeStyle: React.CSSProperties = {
 
 export default function JobDetailPage() {
   const { jobId } = useParams<{ jobId: string }>()
-  const id = Number(jobId)
+  const id = jobId
   const router = useRouter()
   const qc = useQueryClient()
   const { add } = useToastStore()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const { data: job, isLoading } = useQuery({
     queryKey: ['jobs', id],
@@ -45,6 +48,12 @@ export default function JobDetailPage() {
   const handleApply = () => {
     recordApplyClick(id).catch(() => {})
     if (job?.applyUrl) window.open(job.applyUrl, '_blank', 'noopener')
+  }
+
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(window.location.href)
+    setMenuOpen(false)
+    add('success', '공고 링크를 복사했습니다.')
   }
 
   if (isLoading) {
@@ -96,15 +105,73 @@ export default function JobDetailPage() {
             {job.title}
           </span>
         </div>
-        <button type="button" style={{ background: 'none', border: 'none', color: 'rgb(138,143,152)', cursor: 'pointer', fontSize: '16px', padding: '4px 8px', letterSpacing: '1px' }}>
-          ···
-        </button>
+        <div style={{ position: 'relative' }}>
+          <button
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+            style={{ background: 'none', border: 'none', color: 'rgb(138,143,152)', cursor: 'pointer', fontSize: '16px', padding: '4px 8px', letterSpacing: '1px' }}
+          >
+            ···
+          </button>
+          {menuOpen && (
+            <div
+              role="menu"
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: 'calc(100% + 6px)',
+                width: '168px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255,255,255,0.08)',
+                backgroundColor: 'rgb(17,18,19)',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                zIndex: 40,
+                overflow: 'hidden',
+              }}
+            >
+              {[
+                { label: job.isSaved ? '저장 취소' : '저장하기', onClick: () => { toggleSave(); setMenuOpen(false) } },
+                { label: '링크 복사', onClick: copyLink },
+                { label: '목록으로 이동', onClick: () => router.push('/jobs') },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  role="menuitem"
+                  onClick={item.onClick}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '9px 12px',
+                    border: 'none',
+                    background: 'transparent',
+                    color: 'rgba(255,255,255,0.72)',
+                    textAlign: 'left',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 2-column body */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Left: content */}
         <div style={{ flex: 1, overflow: 'auto', padding: '32px 40px' }}>
+          <AgentIntro
+            title="공고 요구사항을 지원 판단으로 바꿉니다"
+            description="역할, 근무 형태, 위치, 유사 공고 신호를 읽고 이 공고를 어떤 후보로 둘지 정리합니다."
+            steps={['요구사항 읽기', '내 선호와 비교', '유사 후보 확인']}
+          />
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
             <CompanyAvatar company={job.company} size={32} />
             <div>
@@ -124,6 +191,16 @@ export default function JobDetailPage() {
           </div>
 
           {/* Description */}
+          <AgentPanel style={{ padding: '20px', marginBottom: '20px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>Agent read</div>
+            <AgentStepList
+              steps={[
+                { label: '역할 신호', detail: `${job.roleCategory || '직무'} 요구사항을 이력서 상단 요약과 맞춰봅니다.` },
+                { label: '환경 신호', detail: `${REMOTE_LABELS[job.remoteType] ?? job.remoteType} 조건과 선호 국가/근무 형태를 비교합니다.`, tone: 'green' },
+                { label: '지원 전 점검', detail: '설명에 반복되는 기술 키워드를 프로젝트 근거와 연결하세요.', tone: 'amber' },
+              ]}
+            />
+          </AgentPanel>
           <div style={{ fontSize: '15px', lineHeight: 1.7, color: 'rgb(138,143,152)', marginBottom: '40px', whiteSpace: 'pre-wrap' }}>
             {job.description}
           </div>
@@ -137,7 +214,7 @@ export default function JobDetailPage() {
               }}>
                 유사 공고
               </div>
-              <div style={{ borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden', backgroundColor: 'rgb(13,14,15)' }}>
+              <AgentPanel style={{ overflow: 'hidden' }}>
                 {similar.map((j, i) => (
                   <div
                     key={j.jobId}
@@ -158,7 +235,7 @@ export default function JobDetailPage() {
                     <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>{j.company}</span>
                   </div>
                 ))}
-              </div>
+              </AgentPanel>
             </div>
           )}
         </div>
@@ -194,11 +271,13 @@ export default function JobDetailPage() {
             </button>
             <button
               onClick={handleApply}
+              disabled={!job.applyUrl}
               style={{
                 height: '32px', width: '100%',
-                backgroundColor: 'rgb(229,229,230)', color: 'rgb(8,9,10)',
+                backgroundColor: job.applyUrl ? 'rgb(229,229,230)' : 'rgba(229,229,230,0.28)',
+                color: 'rgb(8,9,10)',
                 fontWeight: 510, fontSize: '13px',
-                border: 'none', borderRadius: '6px', cursor: 'pointer',
+                border: 'none', borderRadius: '6px', cursor: job.applyUrl ? 'pointer' : 'not-allowed',
               }}
             >
               지원하기 →

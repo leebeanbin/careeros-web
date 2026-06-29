@@ -5,6 +5,7 @@ import { getGraph, getPreferences, updatePreferences } from '@/lib/api/candidate
 import type { CandidatePreferences } from '@/lib/api/types'
 import ScoreBreakdownChart from '@/components/app/ScoreBreakdownChart'
 import { useToastStore } from '@/stores/toastStore'
+import { AgentIntro, AgentPanel, AgentStepList } from '@/components/app/AgentPrimitives'
 
 const REMOTE_OPTIONS = ['REMOTE', 'HYBRID', 'ON_SITE'] as const
 const REMOTE_LABELS: Record<string, string> = { REMOTE: '원격', HYBRID: '하이브리드', ON_SITE: '오프사이트' }
@@ -39,21 +40,15 @@ export default function CandidatePage() {
 
   return (
     <div>
-      {/* Sticky header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        display: 'flex', alignItems: 'center',
-        height: '48px', padding: '0 24px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        backgroundColor: 'rgb(8,9,10)',
-      }}>
-        <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>경력 그래프</span>
-      </div>
-
       <div style={{ maxWidth: '720px', margin: '0 auto', padding: '24px' }}>
+        <AgentIntro
+          title="커리어 그래프의 신호를 해석합니다"
+          description="기술, 근거, 역할, 선호도 점수가 어디서 벌어지는지 읽고 선호 설정에 반영합니다."
+          steps={['점수 분해', '선호도 비교', '저장 후 재계산']}
+        />
         {/* Score chart */}
         {graph && (
-          <div style={card}>
+          <AgentPanel style={{ ...card }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <span style={{ fontSize: '12px', fontWeight: 500, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 매칭 점수 분포
@@ -69,12 +64,25 @@ export default function CandidatePage() {
               preferenceScore={graph.preferenceScore}
               freshnessScore={graph.freshnessScore}
             />
-          </div>
+          </AgentPanel>
+        )}
+
+        {graph && (
+          <AgentPanel delay={70} style={{ padding: '16px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>Agent diagnosis</div>
+            <AgentStepList
+              steps={[
+                { label: '가장 강한 신호', detail: `현재 총점은 ${graph.totalScore}점입니다. 높은 축을 먼저 지원 근거로 사용하세요.`, tone: 'green' },
+                { label: '보완할 신호', detail: '선호도와 최신성 점수가 낮으면 관심 역할과 GitHub 동기화를 먼저 점검하세요.', tone: 'amber' },
+                { label: '설정 반영', detail: '근무 형태와 국가 선호를 저장하면 매칭 정렬 기준이 더 선명해집니다.' },
+              ]}
+            />
+          </AgentPanel>
         )}
 
         {/* Preferences form */}
         {prefs && (
-          <form onSubmit={handleSubmit((d) => save(d))} style={card}>
+          <form className="agent-reveal" onSubmit={handleSubmit((d) => save(d))} style={card}>
             <div style={{ fontSize: '12px', fontWeight: 500, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '20px' }}>
               선호도 설정
             </div>

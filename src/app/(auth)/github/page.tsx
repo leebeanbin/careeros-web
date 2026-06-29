@@ -3,13 +3,14 @@ import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import {
-  connectGitHub, getGitHubProfile, disconnectGitHub, syncGitHub, getSyncStatus, listRepos,
+  connectGitHub, getGitHubProfile, disconnectGitHub, syncGitHub, getSyncStatus, listRepos, toggleRepoIncluded,
 } from '@/lib/api/github'
 import type { GitHubRepo } from '@/lib/api/types'
 import CursorList from '@/components/ui/CursorList'
 import Spinner from '@/components/ui/Spinner'
 import { useToastStore } from '@/stores/toastStore'
 import { ApiError } from '@/lib/api/client'
+import { AgentIntro, AgentPanel, AgentStepList } from '@/components/app/AgentPrimitives'
 
 interface ConnectForm { username: string }
 
@@ -55,11 +56,11 @@ export default function GitHubPage() {
   useEffect(() => {
     if (syncStatus?.status === 'COMPLETED') {
       add('success', 'GitHub 동기화가 완료되었습니다.')
-      setSyncId(null)
+      queueMicrotask(() => setSyncId(null))
       qc.invalidateQueries({ queryKey: ['github'] })
     } else if (syncStatus?.status === 'FAILED') {
       add('error', 'GitHub 동기화에 실패했습니다.')
-      setSyncId(null)
+      queueMicrotask(() => setSyncId(null))
     }
   }, [syncStatus?.status, add, qc])
 
@@ -81,27 +82,30 @@ export default function GitHubPage() {
 
   const isSyncing = syncing || syncStatus?.status === 'PENDING' || syncStatus?.status === 'IN_PROGRESS'
 
+  const { mutate: toggleInclude } = useMutation({
+    mutationFn: ({ repoId, included }: { repoId: string | number; included: boolean }) =>
+      toggleRepoIncluded(repoId, included),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['github', 'repos'] })
+    },
+    onError: () => add('error', '레포 설정 변경에 실패했습니다.'),
+  })
+
   return (
     <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-      {/* Sticky header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        display: 'flex', alignItems: 'center',
-        height: '48px', padding: '0 24px',
-        borderBottom: `1px solid ${S.border}`,
-        backgroundColor: 'rgb(8,9,10)',
-      }}>
-        <span style={{ fontSize: '13px', fontWeight: 500, color: S.textMuted }}>GitHub 연동</span>
-      </div>
-
       <div style={{ padding: '24px' }}>
+        <AgentIntro
+          title="GitHub 작업 흔적을 커리어 신호로 바꿉니다"
+          description="레포, 언어, 스타, 설명을 읽어 이력서에 담을 수 있는 근거로 정리합니다."
+          steps={['프로필 연결', '레포 신호 수집', '기술 근거 정리']}
+        />
         {profileLoading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
             <Spinner size="lg" className="text-indigo-400" />
           </div>
         ) : !profile ? (
           /* Connect form */
-          <div style={{ ...S.surface, padding: '24px', maxWidth: '420px' }}>
+          <AgentPanel style={{ padding: '24px', maxWidth: '420px' }}>
             <p style={{ fontSize: '13px', fontWeight: 500, color: S.textPrimary, marginBottom: '4px' }}>GitHub 계정 연결</p>
             <p style={{ fontSize: '12px', color: S.textHint, marginBottom: '20px' }}>GitHub 활동을 분석해 기술 프로필을 강화하세요</p>
             <form onSubmit={handleSubmit((d) => connect(d))} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -129,11 +133,11 @@ export default function GitHubPage() {
                 연결하기
               </button>
             </form>
-          </div>
+          </AgentPanel>
         ) : (
           <>
             {/* Profile card */}
-            <div style={{ ...S.surface, padding: '20px', marginBottom: '24px' }}>
+            <AgentPanel style={{ padding: '20px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   {profile.avatarUrl ? (
@@ -186,19 +190,30 @@ export default function GitHubPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </AgentPanel>
+
+            <AgentPanel delay={80} style={{ padding: '16px', marginBottom: '24px' }}>
+              <div style={{ fontSize: '11px', color: S.textHint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>Repository read</div>
+              <AgentStepList
+                steps={[
+                  { label: '기술 스택 확인', detail: '주요 언어와 반복적으로 쓰인 기술을 이력서 키워드 후보로 봅니다.' },
+                  { label: '프로젝트 근거 추출', detail: '설명이 있는 레포를 우선 검토해 문제 해결 맥락을 찾습니다.', tone: 'green' },
+                  { label: '동기화 후 재분석', detail: '최신 커밋 신호가 반영되면 후보자 그래프와 매칭 점수가 갱신됩니다.', tone: 'amber' },
+                ]}
+              />
+            </AgentPanel>
 
             {/* Repo list */}
             <p style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
               레포지토리
             </p>
-            <div style={{ ...S.surface, overflow: 'hidden' }}>
+            <AgentPanel style={{ overflow: 'hidden' }}>
               <CursorList<GitHubRepo>
                 queryKey={['github', 'repos']}
                 fetcher={(cursor) => listRepos(cursor)}
                 emptyTitle="레포지토리가 없습니다"
                 className=""
-                renderItem={(repo, i) => (
+                renderItem={(repo) => (
                   <div key={repo.repoId} style={{
                     display: 'flex', alignItems: 'center', gap: '12px',
                     height: '44px', padding: '0 16px',
@@ -223,12 +238,36 @@ export default function GitHubPage() {
                           borderRadius: '10px', fontSize: '11px', padding: '0 8px', lineHeight: '20px',
                         }}>{repo.language}</span>
                       )}
+                      {(repo.skills ?? []).length > 0 && (
+                        <span style={{ fontSize: '11px', color: S.textHint }}>
+                          {repo.skills!.slice(0, 2).join(', ')}
+                        </span>
+                      )}
                       <span style={{ fontSize: '12px', color: S.textHint }}>⭐ {repo.stars}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); toggleInclude({ repoId: repo.repoId, included: !repo.included }) }}
+                        title={repo.included ? '분석에서 제외' : '분석에 포함'}
+                        style={{
+                          width: '34px', height: '18px', borderRadius: '9px',
+                          border: 'none', cursor: 'pointer', position: 'relative',
+                          backgroundColor: repo.included ? 'rgb(99,102,241)' : 'rgba(255,255,255,0.12)',
+                          transition: 'background-color 0.15s',
+                        }}
+                      >
+                        <span style={{
+                          position: 'absolute', top: '2px',
+                          left: repo.included ? '18px' : '2px',
+                          width: '14px', height: '14px', borderRadius: '50%',
+                          backgroundColor: 'white',
+                          transition: 'left 0.15s',
+                        }} />
+                      </button>
                     </div>
                   </div>
                 )}
               />
-            </div>
+            </AgentPanel>
           </>
         )}
       </div>

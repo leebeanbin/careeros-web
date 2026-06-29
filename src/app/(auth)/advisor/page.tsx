@@ -5,6 +5,7 @@ import { getDashboard, requestReport, listReports } from '@/lib/api/advisor'
 import type { AdvisorReport } from '@/lib/api/types'
 import CursorList from '@/components/ui/CursorList'
 import { useToastStore } from '@/stores/toastStore'
+import { AgentIntro, AgentPanel, AgentStatusStrip, AgentStepList } from '@/components/app/AgentPrimitives'
 
 function StatusBadge({ status }: { status: string }) {
   const completed = status === 'COMPLETED'
@@ -36,6 +37,7 @@ export default function AdvisorPage() {
     mutationFn: requestReport,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['advisor', 'reports'] })
+      qc.invalidateQueries({ queryKey: ['advisor', 'dashboard'] })
       add('success', '새 보고서 요청이 완료되었습니다. 잠시 후 확인하세요.')
     },
     onError: () => add('error', '요청에 실패했습니다.'),
@@ -51,49 +53,74 @@ export default function AdvisorPage() {
         borderBottom: '1px solid rgba(255,255,255,0.06)',
         backgroundColor: 'rgb(8,9,10)',
       }}>
-        <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>AI 어드바이저</span>
-        <button
-          onClick={() => request()}
-          disabled={isPending}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            backgroundColor: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            color: isPending ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.8)',
-            borderRadius: '6px', height: '32px', padding: '0 14px',
-            fontSize: '13px', cursor: isPending ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {isPending && (
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ animation: 'spin 1s linear infinite' }}>
-              <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="15"/>
-            </svg>
-          )}
-          새 보고서 요청
-        </button>
+        <div>
+          <div style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.88)' }}>AI 어드바이저</div>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>이력서 분석, 레이아웃 리뷰, 매칭 흐름을 종합한 보고서를 생성합니다.</div>
+        </div>
+        <span style={{ fontSize: '11px', color: isPending ? 'rgb(129,140,248)' : 'rgba(255,255,255,0.32)' }}>
+          {isPending ? '보고서 작성 중...' : '대기 중'}
+        </span>
       </div>
 
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '24px' }}>
+        <AgentIntro
+          title="어드바이저가 여러 신호를 종합합니다"
+          description="이력서, 매칭, 레이아웃, 알림 신호를 묶어 보고서로 정리합니다."
+          steps={['프로필 신호 수집', '매칭 근거 비교', '보고서 작성']}
+          action={
+            <button
+              onClick={() => request(undefined)}
+              disabled={isPending}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                backgroundColor: 'rgba(229,229,230,0.92)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                color: 'rgb(8,9,10)',
+                borderRadius: '7px', height: '34px', padding: '0 14px',
+                fontSize: '13px', fontWeight: 600, cursor: isPending ? 'not-allowed' : 'pointer',
+              }}
+            >
+              새 보고서 요청
+            </button>
+          }
+        />
+        {dashboard?.recentReport && (
+          <AgentPanel style={{
+            display: 'grid', gridTemplateColumns: '1fr auto', gap: '16px', alignItems: 'center',
+            backgroundColor: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.22)',
+            padding: '16px', marginBottom: '16px',
+          }}>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.9)', marginBottom: '4px' }}>최근 어드바이저 메모</div>
+              <div style={{ fontSize: '12px', lineHeight: 1.6, color: 'rgba(255,255,255,0.55)' }}>
+                {dashboard.recentReport.content?.slice(0, 130) || '최근 보고서가 준비 중입니다. 완료되면 요약을 바로 확인할 수 있습니다.'}
+              </div>
+            </div>
+            <StatusBadge status={dashboard.recentReport.status} />
+          </AgentPanel>
+        )}
+
         {/* Stats */}
         {dashboard && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', marginBottom: '28px' }}>
-            {[
-              { label: '총 매칭', value: dashboard.totalMatches },
-              { label: '최고 점수', value: dashboard.topMatchScore },
-              { label: '평균 점수', value: dashboard.avgMatchScore },
-            ].map((s) => (
-              <div key={s.label} style={{
-                backgroundColor: 'rgb(13,14,15)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: '8px',
-                padding: '20px',
-              }}>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>{s.label}</div>
-                <div style={{ fontSize: '28px', fontWeight: 600, color: 'rgba(255,255,255,0.9)', lineHeight: 1 }}>{s.value}</div>
-              </div>
-            ))}
-          </div>
+          <AgentStatusStrip
+            items={[
+              { label: '총 매칭', value: dashboard.totalMatches, tone: 'green' },
+              { label: '최고 점수', value: dashboard.topMatchScore, tone: 'indigo' },
+              { label: '평균 점수', value: dashboard.avgMatchScore, tone: 'amber' },
+            ]}
+          />
         )}
+
+        <AgentPanel style={{ padding: '16px', marginBottom: '20px' }}>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>Report pipeline</div>
+          <AgentStepList
+            steps={[
+              { label: '이력서와 레이아웃 신호 읽기', detail: '강점, 취약점, 섹션별 수정 위치를 보고서 맥락으로 모읍니다.' },
+              { label: '매칭 근거와 선호도 비교', detail: '점수만 보지 않고 역할, 근거, 선호도 간의 간극을 찾습니다.', tone: 'green' },
+              { label: '다음 행동 문장으로 정리', detail: '지원, 보완, 면접 준비 중 바로 실행 가능한 항목으로 줄입니다.', tone: 'amber' },
+            ]}
+          />
+        </AgentPanel>
 
         {/* Section label */}
         <div style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>

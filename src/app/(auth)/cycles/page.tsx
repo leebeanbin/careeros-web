@@ -1,10 +1,13 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { listMatches } from '@/lib/api/matches'
 import { MatchStatusIcon } from '@/components/app/MatchStatusIcon'
+import { AgentIntro, AgentStatusStrip } from '@/components/app/AgentPrimitives'
 
 export default function CyclesPage() {
+  const router = useRouter()
   const [showCompleted, setShowCompleted] = useState(false)
 
   const { data } = useQuery({
@@ -30,7 +33,7 @@ export default function CyclesPage() {
         padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0,
       }}>
         <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgb(247,248,248)' }}>지원 사이클</span>
-        <button type="button" style={{
+        <button type="button" onClick={() => router.push('/matches')} style={{
           backgroundColor: 'transparent', color: 'rgb(208,214,224)',
           border: '1px solid rgba(255,255,255,0.12)',
           borderRadius: '6px', padding: '5px 12px', fontSize: '12px', cursor: 'pointer',
@@ -40,6 +43,18 @@ export default function CyclesPage() {
       </div>
 
       <div style={{ flex: 1, overflow: 'auto', padding: '24px 20px' }}>
+        <AgentIntro
+          title="지원 사이클을 단계별로 접어봅니다"
+          description="활성 매칭, 검토 중 후보, 낮은 매칭을 나눠 지금 움직일 사이클을 먼저 보여줍니다."
+          steps={['활성 매칭 분류', '검토 후보 보관', '낮은 매칭 접기']}
+        />
+        <AgentStatusStrip
+          items={[
+            { label: '활성 매칭', value: activeMatches.length, tone: 'green' },
+            { label: '검토 중', value: upcomingMatches.length, tone: 'amber' },
+            { label: '낮은 매칭', value: completedMatches.length, tone: 'muted' },
+          ]}
+        />
         {matches.length === 0 && (
           <div style={{ textAlign: 'center', padding: '60px 0', fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
             매칭된 공고가 없습니다
@@ -48,7 +63,7 @@ export default function CyclesPage() {
 
         {/* Active card */}
         {activeMatches.length > 0 && (
-          <div style={{
+          <div className="agent-surface agent-reveal" style={{
             backgroundColor: 'rgb(13,14,15)',
             border: '1px solid rgba(34,197,94,0.25)',
             borderRadius: '10px', padding: '20px', marginBottom: '16px',
@@ -91,7 +106,7 @@ export default function CyclesPage() {
 
         {/* Upcoming cards */}
         {upcomingMatches.slice(0, 3).map((m) => (
-          <div key={m.matchId} style={{
+          <div key={m.matchId} className="agent-reveal" style={{
             backgroundColor: 'rgb(13,14,15)',
             border: '1px solid rgba(255,255,255,0.07)',
             borderRadius: '10px', padding: '20px', marginBottom: '16px', opacity: 0.8,
@@ -122,7 +137,7 @@ export default function CyclesPage() {
               <span>낮은 매칭 · {completedMatches.length}개</span>
             </div>
             {showCompleted && completedMatches.map((m) => (
-              <div key={m.matchId} style={{
+              <div key={m.matchId} className="agent-reveal" style={{
                 backgroundColor: 'rgb(13,14,15)', border: '1px solid rgba(255,255,255,0.05)',
                 borderRadius: '8px', padding: '14px 16px', marginBottom: '8px', opacity: 0.6,
               }}>

@@ -1,19 +1,23 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/navigation'
 import { getMe, updateMe, deleteMe } from '@/lib/api/users'
 import { logout } from '@/lib/api/auth'
-import type { UpdateUserDto } from '@/lib/api/types'
+import { getPreferences, updatePreferences } from '@/lib/api/candidate'
+import { listRoles } from '@/lib/api/taxonomy'
+import type { UpdateUserDto, CandidatePreferences } from '@/lib/api/types'
 import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
+import { AgentIntro, AgentPanel } from '@/components/app/AgentPrimitives'
 
-type Section = 'profile' | 'danger'
+type Section = 'profile' | 'preferences' | 'danger'
 
 const SETTINGS_NAV = [
   { group: '계정', items: [
     { id: 'profile' as Section, label: '프로필' },
+    { id: 'preferences' as Section, label: '구직 선호도' },
     { id: 'danger' as Section, label: '계정 삭제' },
   ]},
 ]
@@ -44,7 +48,7 @@ export default function SettingsPage() {
   const { data: me } = useQuery({ queryKey: ['users', 'me'], queryFn: getMe })
 
   const { register, handleSubmit, formState: { isSubmitting, isDirty } } =
-    useForm<UpdateUserDto>({ values: me ? { name: me.name, email: me.email } : undefined })
+    useForm<UpdateUserDto>({ values: me ? { name: me.name } : undefined })
 
   const { mutate: save } = useMutation({
     mutationFn: updateMe,
@@ -62,7 +66,10 @@ export default function SettingsPage() {
     onError: () => add('error', '탈퇴에 실패했습니다.'),
   })
 
-  const sectionTitle = activeSection === 'profile' ? '프로필' : '계정 삭제'
+  const sectionTitle =
+    activeSection === 'profile' ? '프로필'
+    : activeSection === 'preferences' ? '구직 선호도'
+    : '계정 삭제'
 
   return (
     <div style={{ display: 'flex', height: '100%', backgroundColor: 'rgb(8,9,10)' }}>
@@ -116,12 +123,14 @@ export default function SettingsPage() {
         </div>
 
         <div style={{ padding: '32px' }}>
+          <AgentIntro
+            title="계정 상태를 조용히 정리합니다"
+            description="프로필 정보와 위험 작업을 분리해 실수 없이 관리할 수 있게 합니다."
+            steps={['프로필 확인', '변경사항 감지', '위험 작업 분리']}
+          />
           {activeSection === 'profile' && (
-            <form onSubmit={handleSubmit((d) => save(d))} style={{
-              backgroundColor: 'rgb(13,14,15)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              borderRadius: '8px', padding: '20px',
-            }}>
+            <AgentPanel>
+            <form onSubmit={handleSubmit((d) => save(d))} style={{ padding: '20px' }}>
               <div style={{
                 fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.4)',
                 textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px',
@@ -135,7 +144,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label style={labelStyle}>이메일</label>
-                  <input {...register('email', { required: true })} type="email" style={inputStyle} />
+                  <input value={me?.email || ''} readOnly disabled style={{ ...inputStyle, opacity: 0.6, cursor: 'not-allowed' }} />
                 </div>
               </div>
               <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
@@ -155,10 +164,15 @@ export default function SettingsPage() {
                 </button>
               </div>
             </form>
+            </AgentPanel>
+          )}
+
+          {activeSection === 'preferences' && (
+            <PreferencesSection />
           )}
 
           {activeSection === 'danger' && (
-            <div style={{
+            <div className="agent-reveal" style={{
               border: '1px solid rgba(255,99,99,0.2)',
               borderRadius: '8px',
               backgroundColor: 'rgba(255,0,0,0.03)',
@@ -240,5 +254,199 @@ export default function SettingsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+const REMOTE_OPTIONS = [
+  { value: 'REMOTE', label: '원격' },
+  { value: 'HYBRID', label: '하이브리드' },
+  { value: 'ON_SITE', label: '오프사이트' },
+] as const
+
+function PreferencesSection() {
+  const qc = useQueryClient()
+  const { add } = useToastStore()
+
+  const { data: prefs } = useQuery({
+    queryKey: ['candidates', 'me', 'preferences'],
+    queryFn: getPreferences,
+  })
+  const { data: roles } = useQuery({
+    queryKey: ['taxonomy', 'roles'],
+    queryFn: listRoles,
+  })
+
+  const [preferredRoles, setPreferredRoles] = useState<string[]>([])
+  const [preferredCountries, setPreferredCountries] = useState<string[]>([])
+  const [remoteType, setRemoteType] = useState<string | null>(null)
+  const [relocationPossible, setRelocationPossible] = useState(false)
+  const [countryInput, setCountryInput] = useState('')
+
+  useEffect(() => {
+    if (prefs) {
+      setPreferredRoles(prefs.preferredRoles)
+      setPreferredCountries(prefs.preferredCountries)
+      setRemoteType(prefs.remoteType)
+      setRelocationPossible(prefs.relocationPossible)
+    }
+  }, [prefs])
+
+  const { mutate: save, isPending } = useMutation({
+    mutationFn: (body: Partial<CandidatePreferences>) => updatePreferences(body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['candidates', 'me', 'preferences'] })
+      add('success', '선호도가 저장되었습니다.')
+    },
+    onError: () => add('error', '저장에 실패했습니다.'),
+  })
+
+  const handleSave = () => {
+    save({ preferredRoles, preferredCountries, remoteType: remoteType as CandidatePreferences['remoteType'], relocationPossible })
+  }
+
+  const toggleRole = (code: string) => {
+    setPreferredRoles((prev) =>
+      prev.includes(code) ? prev.filter((r) => r !== code) : [...prev, code],
+    )
+  }
+
+  const addCountry = () => {
+    const trimmed = countryInput.trim()
+    if (trimmed && !preferredCountries.includes(trimmed)) {
+      setPreferredCountries((prev) => [...prev, trimmed])
+    }
+    setCountryInput('')
+  }
+
+  const chipStyle = (active: boolean): React.CSSProperties => ({
+    display: 'inline-flex', alignItems: 'center', gap: '4px',
+    padding: '4px 10px', borderRadius: '14px', fontSize: '12px',
+    fontWeight: 500, cursor: 'pointer', border: 'none',
+    transition: 'all 150ms',
+    backgroundColor: active ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.06)',
+    color: active ? 'rgb(129,140,248)' : 'rgba(255,255,255,0.5)',
+  })
+
+  return (
+    <AgentPanel>
+      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{
+          fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.4)',
+          textTransform: 'uppercase', letterSpacing: '0.06em',
+        }}>
+          구직 선호도
+        </div>
+
+        {/* Preferred roles */}
+        <div>
+          <label style={labelStyle}>선호 직무</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {(roles ?? []).map((r) => (
+              <button
+                key={r.code}
+                type="button"
+                onClick={() => toggleRole(r.code)}
+                style={chipStyle(preferredRoles.includes(r.code))}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Preferred countries */}
+        <div>
+          <label style={labelStyle}>선호 국가</label>
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+            <input
+              value={countryInput}
+              onChange={(e) => setCountryInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCountry() } }}
+              placeholder="국가명 입력 후 Enter"
+              style={{ ...inputStyle, flex: 1 }}
+            />
+            <button
+              type="button"
+              onClick={addCountry}
+              style={{
+                height: '36px', padding: '0 12px',
+                backgroundColor: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: 'rgba(255,255,255,0.5)',
+                borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
+              }}
+            >
+              추가
+            </button>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {preferredCountries.map((c) => (
+              <span key={c} style={{ ...chipStyle(true), cursor: 'default' }}>
+                {c}
+                <button
+                  type="button"
+                  onClick={() => setPreferredCountries((prev) => prev.filter((x) => x !== c))}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'rgba(255,255,255,0.3)', fontSize: '12px', padding: 0, lineHeight: 1,
+                  }}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Remote type */}
+        <div>
+          <label style={labelStyle}>근무 형태</label>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {REMOTE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setRemoteType(remoteType === opt.value ? null : opt.value)}
+                style={chipStyle(remoteType === opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Relocation */}
+        <div>
+          <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={relocationPossible}
+              onChange={(e) => setRelocationPossible(e.target.checked)}
+              style={{ accentColor: 'rgb(99,102,241)' }}
+            />
+            이주 가능
+          </label>
+        </div>
+
+        {/* Save button */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isPending}
+            style={{
+              height: '32px', padding: '0 14px',
+              backgroundColor: isPending ? 'rgba(229,229,230,0.3)' : 'rgb(229,229,230)',
+              color: 'rgb(8,9,10)', fontWeight: 510,
+              fontSize: '13px', border: 'none',
+              borderRadius: '6px',
+              cursor: isPending ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {isPending ? '저장 중...' : '선호도 저장'}
+          </button>
+        </div>
+      </div>
+    </AgentPanel>
   )
 }

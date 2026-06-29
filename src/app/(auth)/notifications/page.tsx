@@ -6,6 +6,7 @@ import {
 } from '@/lib/api/notifications'
 import type { NotificationDto } from '@/lib/api/types'
 import CursorList from '@/components/ui/CursorList'
+import { AgentIntro } from '@/components/app/AgentPrimitives'
 
 function formatRelative(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
@@ -29,11 +30,11 @@ export default function NotificationsPage() {
   const router = useRouter()
 
   const { mutate: read } = useMutation({
-    mutationFn: (id: number) => markRead(id),
+    mutationFn: (id: string | number) => markRead(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   })
   const { mutate: del } = useMutation({
-    mutationFn: (id: number) => deleteNotification(id),
+    mutationFn: (id: string | number) => deleteNotification(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   })
   const { mutate: readAll } = useMutation({
@@ -48,15 +49,21 @@ export default function NotificationsPage() {
 
   return (
     <div style={{ maxWidth: '780px', margin: '0 auto' }}>
+      <div style={{ padding: '16px 24px 0' }}>
+        <AgentIntro
+          title="새 신호를 정리해서 보여줍니다"
+          description="매칭, 이력서, GitHub, 어드바이저 알림을 읽고 다음에 확인할 흐름으로 연결합니다."
+          steps={['신호 분류', '읽음 상태 정리', '관련 화면 이동']}
+        />
+      </div>
       {/* Sticky header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
         height: '48px', padding: '0 24px',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
         backgroundColor: 'rgb(8,9,10)',
       }}>
-        <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>알림</span>
         <button
           onClick={() => readAll()}
           style={{
