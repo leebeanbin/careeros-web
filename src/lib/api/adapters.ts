@@ -16,6 +16,7 @@ import type {
 type BackendCursorPage<T> = CursorPage<T> & {
   items?: T[]
   notifications?: T[]
+  total?: number
 }
 
 type BackendJob = Omit<Partial<JobDto>, 'company'> & {
@@ -80,7 +81,9 @@ type BackendCandidateGraph = Partial<CandidateGraph> & {
 
 type BackendCandidatePreferences = Partial<CandidatePreferences> & {
   countries?: string[]
-  remoteTypes?: Array<'REMOTE' | 'HYBRID' | 'ON_SITE'>
+  remoteType?: string
+  remoteTypes?: string[]
+  employmentTypes?: string[]
   roleCategories?: string[]
 }
 
@@ -125,6 +128,8 @@ export function normalizeCursorPage<T>(
     content: content.map(normalizeItem),
     nextCursor: page.nextCursor ?? null,
     hasNext: Boolean(page.hasNext),
+    totalElements: page.totalElements ?? page.totalCount ?? page.total,
+    totalCount: page.totalCount ?? page.totalElements ?? page.total,
   }
 }
 
@@ -257,7 +262,8 @@ export function normalizeCandidatePreferences(prefs: BackendCandidatePreferences
   return {
     preferredRoles: prefs.preferredRoles ?? prefs.roleCategories ?? [],
     preferredCountries: prefs.preferredCountries ?? prefs.countries ?? [],
-    remoteType: prefs.remoteType ?? prefs.remoteTypes?.[0] ?? null,
+    remoteTypes: prefs.remoteTypes ?? (prefs.remoteType ? [prefs.remoteType] : []),
+    employmentTypes: prefs.employmentTypes ?? [],
     relocationPossible: prefs.relocationPossible ?? false,
   }
 }
@@ -266,7 +272,8 @@ export function toBackendCandidatePreferences(body: Partial<CandidatePreferences
   return {
     countries: body.preferredCountries,
     roleCategories: body.preferredRoles,
-    remoteTypes: body.remoteType ? [body.remoteType] : undefined,
+    remoteTypes: body.remoteTypes,
+    employmentTypes: body.employmentTypes,
     relocationPossible: body.relocationPossible,
   }
 }

@@ -6,6 +6,9 @@ export const connectGitHub = (body: { mode: 'username'; username: string } | { m
   apiFetch<GitHubProfile>('/github/connect', { method: 'POST', body: JSON.stringify(body) })
 
 export const getGitHubProfile = () =>
+  apiFetch<GitHubProfile>('/github/profile')
+
+export const getConnectionStatus = () =>
   apiFetch<GitHubProfile>('/github/connect')
 
 export const disconnectGitHub = () =>

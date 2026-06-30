@@ -4,6 +4,8 @@ export interface CursorPage<T> {
   content: T[]
   nextCursor: string | null
   hasNext: boolean
+  totalElements?: number
+  totalCount?: number
 }
 
 // --- Jobs ---
@@ -25,6 +27,7 @@ export interface JobSearchParams {
   keyword?: string
   roleCategory?: string
   remoteType?: string
+  employmentType?: string
   experienceLevel?: string
   country?: string
   sort?: 'LATEST' | 'SCORE'
@@ -129,7 +132,8 @@ export interface CandidateGraph {
 export interface CandidatePreferences {
   preferredRoles: string[]
   preferredCountries: string[]
-  remoteType: 'REMOTE' | 'HYBRID' | 'ON_SITE' | null
+  remoteTypes: string[]
+  employmentTypes: string[]
   relocationPossible: boolean
 }
 
