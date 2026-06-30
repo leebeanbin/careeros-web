@@ -2,9 +2,9 @@ import Link from "next/link";
 import { LogoWordmark } from "@/components/brand/Logo";
 
 const navLinks = [
-  { label: "기능", href: "#features" },
-  { label: "정리", href: "#matching" },
-  { label: "흐름", href: "#start" },
+  { label: "제품 흐름", href: "#product-flow" },
+  { label: "핵심 기능", href: "#features" },
+  { label: "시작하기", href: "#start" },
 ];
 
 export default function LandingNav() {

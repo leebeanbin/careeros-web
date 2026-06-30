@@ -1,8 +1,7 @@
 import LandingNav from "@/components/landing/LandingNav";
 import HeroSection from "@/components/landing/HeroSection";
-import LogoBar from "@/components/landing/LogoBar";
+import ProductFlowShowcase from "@/components/landing/ProductFlowShowcase";
 import PillarCards from "@/components/landing/PillarCards";
-import { FeatureSections } from "@/components/landing/FeatureSection";
 import CtaSection from "@/components/landing/CtaSection";
 import Footer from "@/components/landing/Footer";
 
@@ -11,9 +10,8 @@ export default function LandingPage() {
     <div className="bg-[#08090A]">
       <LandingNav />
       <HeroSection />
-      <LogoBar />
+      <ProductFlowShowcase />
       <PillarCards />
-      <FeatureSections />
       <CtaSection />
       <Footer />
     </div>

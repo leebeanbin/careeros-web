@@ -5,10 +5,10 @@ const columns = [
   {
     title: "도움",
     links: [
-      { label: "커리어 정리", href: "#matching" },
-      { label: "GitHub 해석", href: "/signup" },
-      { label: "이력서 메모", href: "/signup" },
-      { label: "COS 어드바이저", href: "/signup" },
+      { label: "커리어 정리", href: "#features" },
+      { label: "GitHub 해석", href: "#features" },
+      { label: "이력서 메모", href: "#features" },
+      { label: "COS 어드바이저", href: "#features" },
     ],
   },
   {
@@ -24,7 +24,7 @@ const columns = [
     title: "프로젝트",
     links: [
       { label: "소개", href: "#features" },
-      { label: "작동 방식", href: "#matching" },
+      { label: "작동 방식", href: "#product-flow" },
       { label: "시작하기", href: "#start" },
     ],
   },
