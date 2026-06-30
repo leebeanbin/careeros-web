@@ -11,6 +11,8 @@ interface CursorListProps<T> {
   renderItem: (item: T, index: number) => React.ReactNode
   emptyTitle?: string
   emptyDescription?: string
+  errorTitle?: string
+  errorDescription?: string
   className?: string
 }
 
@@ -20,11 +22,13 @@ export default function CursorList<T>({
   renderItem,
   emptyTitle = '결과가 없습니다',
   emptyDescription,
+  errorTitle = '데이터를 불러오지 못했습니다',
+  errorDescription = '잠시 후 다시 시도하거나 백엔드 연결 상태를 확인하세요.',
   className = 'space-y-3',
 }: CursorListProps<T>) {
   const sentinelRef = useRef<HTMLDivElement>(null)
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
     useInfiniteQuery({
       queryKey,
       queryFn: ({ pageParam }) => fetcher(pageParam as string | undefined),
@@ -51,6 +55,10 @@ export default function CursorList<T>({
         {[0, 1, 2].map((i) => <CardSkeleton key={i} />)}
       </div>
     )
+  }
+
+  if (isError) {
+    return <EmptyState marker="!" title={errorTitle} description={errorDescription} tone="error" />
   }
 
   const items = data?.pages.flatMap((p) => p.content) ?? []

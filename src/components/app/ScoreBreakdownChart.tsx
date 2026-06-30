@@ -26,11 +26,11 @@ export default function ScoreBreakdownChart(props: ScoreBreakdownChartProps) {
         <Radar
           dataKey="value"
           name="점수"
-          fill="#6366f1"
-          fillOpacity={0.15}
-          stroke="#6366f1"
+          fill="#7A97D6"
+          fillOpacity={0.12}
+          stroke="#7A97D6"
           strokeWidth={2}
-          dot={{ r: 3, fill: '#6366f1' }}
+          dot={{ r: 3, fill: '#D0D6E0' }}
         />
       </RadarChart>
     </ResponsiveContainer>

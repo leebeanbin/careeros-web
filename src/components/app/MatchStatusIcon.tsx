@@ -51,8 +51,8 @@ export function MatchStatusIcon({ score, size = 16 }: Props) {
   if (score >= 50) {
     return (
       <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} fill="none">
-        <circle cx={cx} cy={cy} r={r} stroke="rgb(99,102,241)" strokeWidth="1.5" />
-        <circle cx={cx} cy={cy} r={r - 3} fill="rgb(99,102,241)" />
+        <circle cx={cx} cy={cy} r={r} stroke="rgba(255,255,255,0.82)" strokeWidth="1.5" />
+        <circle cx={cx} cy={cy} r={r - 3} fill="rgba(255,255,255,0.82)" />
       </svg>
     )
   }

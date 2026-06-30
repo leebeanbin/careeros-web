@@ -23,9 +23,9 @@ export function RemoteTypeIcon({ remoteType, size = 16 }: Props) {
     : 1 // ON_SITE
 
   const activeColor =
-    remoteType === 'REMOTE' ? 'rgb(99,102,241)'
-    : remoteType === 'HYBRID' ? 'rgb(234,179,8)'
-    : 'rgb(138,143,152)'
+    remoteType === 'REMOTE' ? 'rgba(255,255,255,0.84)'
+    : remoteType === 'HYBRID' ? 'rgba(255,255,255,0.66)'
+    : 'rgba(255,255,255,0.48)'
 
   return (
     <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} fill="none">

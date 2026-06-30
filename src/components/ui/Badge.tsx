@@ -1,20 +1,25 @@
 interface BadgeProps {
-  variant?: 'default' | 'success' | 'warning' | 'error' | 'info'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'muted' | 'default' | 'warning' | 'error' | 'info'
   children: React.ReactNode
   className?: string
 }
 
 const variantClasses = {
-  default: 'bg-gray-100 text-gray-700',
-  success: 'bg-green-100 text-green-700',
-  warning: 'bg-amber-100 text-amber-700',
-  error:   'bg-red-100 text-red-700',
-  info:    'bg-blue-100 text-blue-700',
+  primary: 'bg-[var(--da-accent-dim)] text-[var(--da-text)] border-[rgba(255,255,255,0.12)]',
+  secondary: 'bg-[var(--da-control)] text-[var(--da-text-2)]',
+  ghost: 'bg-transparent text-[var(--da-text-2)]',
+  danger: 'bg-[var(--da-danger-dim)] text-[var(--da-danger)]',
+  muted: 'bg-[var(--da-badge)] text-[var(--da-badge-text)]',
+  success: 'bg-[var(--da-control)] text-[var(--da-success)]',
+  warning: 'bg-[var(--da-control)] text-[var(--da-warning)]',
+  error:   'bg-[var(--da-danger-dim)] text-[var(--da-danger)]',
+  info:    'bg-[var(--da-control)] text-[var(--da-text)]',
+  default: 'bg-[var(--da-badge)] text-[var(--da-badge-text)]',
 }
 
 export function Badge({ variant = 'default', children, className = '' }: BadgeProps) {
   return (
-    <span className={`inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium ${variantClasses[variant]} ${className}`}>
+    <span className={`inline-flex items-center rounded-sm border border-[var(--da-border)] px-2 py-0.5 text-xs font-medium ${variantClasses[variant]} ${className}`}>
       {children}
     </span>
   )

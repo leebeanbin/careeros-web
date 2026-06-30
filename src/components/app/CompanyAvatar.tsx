@@ -1,8 +1,8 @@
 // careeros-view MemberAvatar pattern — adapted for company initials
 const COLORS = [
-  'rgb(139,92,246)', 'rgb(59,130,246)', 'rgb(34,197,94)',
-  'rgb(234,179,8)',  'rgb(239,68,68)',  'rgb(99,102,241)',
-  'rgb(236,72,153)', 'rgb(20,184,166)',
+  'rgba(255,255,255,0.18)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0.12)',
+  'rgba(255,255,255,0.2)',  'rgba(255,255,255,0.14)', 'rgba(255,255,255,0.16)',
+  'rgba(255,255,255,0.13)', 'rgba(255,255,255,0.17)',
 ]
 
 function hashColor(str: string): string {
@@ -25,7 +25,8 @@ export function CompanyAvatar({ company, size = 18 }: Props) {
       backgroundColor: color,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: `${Math.floor(size * 0.45)}px`, fontWeight: 600,
-      color: 'white', flexShrink: 0,
+      color: 'rgba(255,255,255,0.82)', flexShrink: 0,
+      border: '1px solid rgba(255,255,255,0.08)',
     }}>
       {initials}
     </div>

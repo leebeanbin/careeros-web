@@ -16,18 +16,18 @@ const remoteLabels: Record<string, string> = {
 
 export default function JobCard({ job, score, action }: JobCardProps) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-[150ms] hover:border-gray-300 hover:shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_6px_rgba(0,0,0,0.06)]">
+    <div className="agent-reveal rounded-lg border border-[var(--da-border)] bg-[var(--da-surface)] p-4 transition-colors duration-150 hover:border-[rgba(255,255,255,0.11)] hover:bg-[var(--da-surface-2)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Link
             href={`/jobs/${job.jobId}`}
-            className="text-sm font-semibold text-gray-900 hover:text-indigo-600 line-clamp-1"
+            className="line-clamp-1 text-[13px] font-semibold text-[var(--da-text)] transition-colors hover:text-white"
           >
             {job.title}
           </Link>
-          <p className="mt-0.5 text-sm text-gray-500">{job.company}</p>
+          <p className="mt-0.5 truncate text-[13px] text-[var(--da-text-2)]">{job.company}</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex shrink-0 items-center gap-2">
           {score != null && <MatchScoreBadge score={score} />}
           {action}
         </div>

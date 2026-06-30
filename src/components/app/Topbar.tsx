@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
 import { useQuery } from '@tanstack/react-query'
 import { listNotifications } from '@/lib/api/notifications'
+import { useNotificationStore } from '@/stores/notificationStore'
 
 const ROUTE_LABELS: Record<string, string> = {
   '/dashboard':  '대시보드',
@@ -33,12 +34,16 @@ export default function Topbar() {
   const { clear } = useAuthStore()
   const { add } = useToastStore()
 
-  const { data: notifPage } = useQuery({
+  const { unreadCount, setUnreadCount } = useNotificationStore()
+
+  useQuery({
     queryKey: ['notifications', 'unread-count'],
-    queryFn: () => listNotifications({ size: 1, unreadOnly: true }),
+    queryFn: () => listNotifications({ size: 1, unreadOnly: true }).then(page => {
+      setUnreadCount(page.totalElements ?? page.content.length)
+      return page
+    }),
     staleTime: 60_000,
   })
-  const unreadCount = (notifPage as { totalCount?: number } | undefined)?.totalCount ?? 0
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -107,7 +112,7 @@ export default function Topbar() {
             <span style={{
               position: 'absolute', top: '2px', right: '2px',
               width: '14px', height: '14px', borderRadius: '50%',
-              backgroundColor: 'rgb(99,102,241)',
+              backgroundColor: 'rgba(255,255,255,0.82)',
               fontSize: '9px', fontWeight: 600, color: 'white',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
@@ -120,7 +125,7 @@ export default function Topbar() {
         <div ref={dropdownRef} style={{ position: 'relative' }}>
           <button onClick={() => setOpen((v) => !v)} style={{
             width: '28px', height: '28px', borderRadius: '50%',
-            backgroundColor: 'rgb(99,102,241)',
+            backgroundColor: 'rgba(255,255,255,0.82)',
             fontSize: '11px', fontWeight: 700, color: 'white',
             border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
