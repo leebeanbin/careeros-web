@@ -35,7 +35,7 @@ Job listing summary card.
 <JobCard
   jobId="job-xyz"
   title="Backend Engineer"
-  company="Acme Corp"
+  company="Northstar Labs"
   country="KR"
   remoteType="HYBRID"
   matchScore={87}

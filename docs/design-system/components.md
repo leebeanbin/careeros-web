@@ -1,96 +1,163 @@
 # UI Components Spec
 
 > Target folder: `src/components/`
-
-Full component interface docs: [wiki/components.md](../../wiki/components.md)
-
----
-
-## MatchScoreBadge
-
-```tsx
-interface MatchScoreBadgeProps {
-  score: number      // 0–100
-  stale?: boolean    // true = recalculating, show gray
-}
-```
-
-Score → color mapping:
-
-| Range | CSS Variable | Tailwind class equivalent |
-|-------|-------------|--------------------------|
-| 85+ | `--color-match-strong` | `text-green-700 bg-green-100` |
-| 70–84 | `--color-match-good` | `text-lime-700 bg-lime-100` |
-| 50–69 | `--color-match-medium` | `text-amber-700 bg-amber-100` |
-| <50 | `--color-match-weak` | `text-gray-500 bg-gray-100` |
+>
+> Shared app components default to `.dark-app` tokens. Landing-only components live under `src/components/landing/`.
 
 ---
 
-## JobCard
+## AgentIntro
+
+Location: `src/components/app/AgentPrimitives.tsx`
 
 ```tsx
-interface JobCardProps {
-  jobId: string
+interface AgentIntroProps {
+  eyebrow?: string
   title: string
-  company: string
-  country: string
-  remoteType: 'REMOTE' | 'HYBRID' | 'ON_SITE'
-  employmentType?: string
-  matchScore?: number      // optional — shown as MatchScoreBadge
-  isSaved?: boolean
-  postedAt: string         // ISO 8601
-  onSave?: () => void
-  onUnsave?: () => void
+  description: string
+  steps?: string[]
+  action?: ReactNode
+  style?: CSSProperties
 }
 ```
+
+- Introduces each app page as an AI-assisted reading surface.
+- Uses a monochrome/gray tone by default.
+- Steps render as small pills and should not introduce heavy color.
+
+---
+
+## AgentPanel
+
+```tsx
+interface AgentPanelProps {
+  children: ReactNode
+  delay?: number
+  style?: CSSProperties
+  className?: string
+}
+```
+
+- Use for repeated cards, analysis boxes, and list containers.
+- Default radius is `8px`; default border is `--da-border`.
+- Do not nest card-like panels inside other card-like panels.
+
+---
+
+## AgentStatusStrip
+
+```tsx
+function AgentStatusStrip({
+  items,
+}: {
+  items: Array<{ label: string; value: string | number; tone?: Tone }>
+})
+```
+
+- Shows current filters, state, or summary values.
+- Tone should read as text luminance, not a full color palette.
+
+---
+
+## Modal
+
+Location: `src/components/ui/Modal.tsx`
+
+```tsx
+interface ModalProps {
+  open: boolean
+  onClose: () => void
+  title: string
+  children: ReactNode
+  maxWidth?: number
+}
+```
+
+- Default background is `--da-surface-2`; border is `--da-border`; shadow is `--shadow-modal`.
+- Supports backdrop click and native dialog close.
+- Inputs and buttons inside modals should use the same dark tokens.
 
 ---
 
 ## CursorList
 
+Location: `src/components/ui/CursorList.tsx`
+
 ```tsx
 interface CursorListProps<T> {
-  query: UseInfiniteQueryResult<InfiniteData<CursorResponse<T>>>
-  renderItem: (item: T) => React.ReactNode
-  emptyMessage?: string
-  loadingFallback?: React.ReactNode
+  queryKey: unknown[]
+  fetcher: (cursor?: string) => Promise<CursorPage<T>>
+  renderItem: (item: T, index: number) => ReactNode
+  emptyTitle?: string
+  emptyDescription?: string
+  errorTitle?: string
+  errorDescription?: string
+  className?: string
 }
 ```
 
-`CursorResponse<T>` matches the careerOS backend envelope:
-```ts
-{ items: T[], nextCursor: string | null, hasNext: boolean }
-```
+States:
+
+- loading: three `CardSkeleton` items
+- error: `EmptyState` with error tone
+- empty: neutral `EmptyState`
+- next page loading: small spinner
+
+API failure must never look like an empty result.
 
 ---
 
-## ScoreBreakdownChart
+## EmptyState
 
 ```tsx
-interface ScoreBreakdownChartProps {
-  breakdown: {
-    skillScore: number       // max 45
-    evidenceScore: number    // max 25
-    roleScore: number        // max 15
-    preferenceScore: number  // max 10
-    freshnessScore: number   // max 5
-  }
+interface EmptyStateProps {
+  marker?: string
+  title: string
+  description?: string
+  action?: { label: string; href: string }
+  tone?: 'neutral' | 'error'
 }
 ```
 
-Renders a `RadarChart` from Recharts with 5 axes. Normalize each score to percentage of its max weight for the radar.
+- Default marker is `—`.
+- Avoid emoji empty states in the app shell.
+- Error tone only uses `--da-danger` and `--da-danger-dim`.
 
 ---
 
-## ResumeUploader
+## Badge / MatchScoreBadge
+
+Location: `src/components/ui/Badge.tsx`
 
 ```tsx
-interface ResumeUploaderProps {
-  onSuccess?: (resumeId: string) => void
-  onError?: (message: string) => void
+interface BadgeProps {
+  variant?: 'default' | 'success' | 'warning' | 'error' | 'info'
+  children: ReactNode
+  className?: string
 }
 ```
 
-Accepts: PDF only, max 10MB.
-Uses: `POST /api/v1/resumes` with `multipart/form-data`.
-After upload: invalidates `['resumes']` TanStack Query cache.
+- Badges use `--da-badge`, `--da-badge-text`, and `--da-border`.
+- Success and warning prefer grayscale luminance over saturated green/yellow.
+- Error may use red clearly.
+
+---
+
+## Skeleton
+
+Location: `src/components/ui/Skeleton.tsx`
+
+- Skeletons use `--da-surface`, `--da-control`, and `--da-control-active`.
+- Do not use white card skeletons in the dark app shell.
+
+---
+
+## JobCard / Row Item
+
+Jobs and matches are row-first, not card-grid-first.
+
+- height: compact `32px`, comfortable `40-44px`
+- row divider: `--da-border-row`
+- hover: `--da-hover`
+- primary text: `--da-text`
+- secondary text: `--da-text-2` or `--da-text-3`

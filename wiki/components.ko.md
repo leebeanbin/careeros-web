@@ -37,7 +37,7 @@
 <JobCard
   jobId="job-xyz"
   title="백엔드 엔지니어"
-  company="Acme Corp"
+  company="Northstar Labs"
   country="KR"
   remoteType="HYBRID"
   matchScore={87}

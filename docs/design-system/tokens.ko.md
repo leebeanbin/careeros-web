@@ -1,194 +1,167 @@
 # 디자인 토큰
 
-> 구현: Tailwind CSS v4 + CSS Custom Properties (`src/app/globals.css`)
+> 구현 기준: `src/app/globals.css`
 >
-> **[cloner]** 태그 수치는 Linear/Discord 클로닝 후 실측값으로 교체 예정.
+> CareerOS의 기본 방향은 **블랙/화이트 중심의 조용한 AI 어시스턴트 UI**입니다. 색상은 상태를 구분할 때만 절제해서 쓰고, 기본 위계는 배경 농도, 보더, 글자 크기와 굵기로 만듭니다.
 
 ---
 
-## 컬러 팔레트
+## 폰트
 
 ```css
+@font-face {
+  font-family: "Pretendard Variable";
+  font-weight: 45 920;
+  font-display: swap;
+  src: url("/fonts/PretendardVariable.woff2") format("woff2");
+}
+
 :root {
-  /* 브랜드 — 클로닝 전 기본값. linear.app 클론 후 accent 컬러 검토 */
-  --color-primary-50:  #eef2ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-200: #c7d2fe;
-  --color-primary-500: #6366f1;  /* indigo-500 — 전문 툴 느낌 */
-  --color-primary-600: #4f46e5;  /* hover */
-  --color-primary-700: #4338ca;  /* active / pressed */
-
-  /* 무채색 */
-  --color-gray-50:  #f9fafb;
-  --color-gray-100: #f3f4f6;
-  --color-gray-200: #e5e7eb;
-  --color-gray-300: #d1d5db;
-  --color-gray-400: #9ca3af;
-  --color-gray-500: #6b7280;
-  --color-gray-600: #4b5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1f2937;
-  --color-gray-900: #111827;
-
-  /* 의미론적 컬러 */
-  --color-success:     #16a34a;
-  --color-success-bg:  #f0fdf4;
-  --color-warning:     #ca8a04;
-  --color-warning-bg:  #fefce8;
-  --color-error:       #dc2626;
-  --color-error-bg:    #fef2f2;
-  --color-info:        #6366f1;
-  --color-info-bg:     #eef2ff;
-
-  /* 매칭 점수 */
-  --color-match-strong:    #16a34a;  /* 85점 이상 */
-  --color-match-strong-bg: #f0fdf4;
-  --color-match-good:      #65a30d;  /* 70–84점 */
-  --color-match-good-bg:   #f7fee7;
-  --color-match-medium:    #ca8a04;  /* 50–69점 */
-  --color-match-medium-bg: #fefce8;
-  --color-match-weak:      #9ca3af;  /* 50점 미만 */
-  --color-match-weak-bg:   #f9fafb;
-
-  /* 서피스 */
-  --color-surface:        #ffffff;   /* 카드 / 패널 배경 */
-  --color-surface-raised: #ffffff;   /* 모달, 드롭다운 */
-  --color-surface-subtle: #f9fafb;   /* 페이지 배경, 사이드바 */
-  --color-border:         #e5e7eb;   /* 기본 테두리 */
-  --color-border-subtle:  #f3f4f6;   /* 구분선 */
+  --font-pretendard: "Pretendard Variable", "Pretendard", ui-sans-serif,
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
 }
 ```
 
+- 한글 UI는 Pretendard Variable을 기준으로 합니다.
+- 기본 자간은 `0`입니다. 화면 폭에 따라 폰트 크기를 직접 스케일하지 않습니다.
+- 앱 내부 제목은 대체로 `19px / 560`, 본문과 설명은 `13px / 400-500`을 기준으로 합니다.
+
 ---
 
-## 타이포그래피
+## 전역 타입 스케일
 
 ```css
 :root {
-  --font-sans: 'Pretendard', 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
-
-  /* 크기 스케일 — [cloner] 실측 후 검토 */
-  --text-2xs: 0.6875rem;  /* 11px — 메타데이터, 타임스탬프 */
-  --text-xs:  0.75rem;    /* 12px — 레이블, 배지 */
-  --text-sm:  0.8125rem;  /* 13px — 사이드바 nav, 테이블 행 (Linear 기준) */
-  --text-base:1rem;       /* 16px — 본문, 폼 입력 */
-  --text-lg:  1.125rem;   /* 18px — 카드 제목 */
-  --text-xl:  1.25rem;    /* 20px — 페이지 헤딩 */
-  --text-2xl: 1.5rem;     /* 24px — 섹션 헤딩 */
-  --text-3xl: 1.875rem;   /* 30px — 히어로 헤딩 */
-  --text-4xl: 2.25rem;    /* 36px — 랜딩 히어로 */
-
-  /* 행간 */
-  --leading-tight:  1.25;
-  --leading-snug:   1.375;
-  --leading-normal: 1.5;
-  --leading-relaxed:1.625;
-
-  /* 굵기 */
-  --font-normal:  400;
-  --font-medium:  500;
-  --font-semibold:600;
-  --font-bold:    700;
+  --text-2xs: 11px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-base: 16px;
+  --text-title: 19px;
 }
 ```
 
----
-
-## 간격 스케일
-
-Tailwind 기본 스케일 사용. 자주 쓰는 조합:
-
-| 토큰 | 값 | 용도 |
-|------|-----|------|
-| `p-1` / `gap-1` | 4px | 아이콘 내부 패딩 |
-| `p-1.5` | 6px | 배지 패딩 |
-| `p-2` / `gap-2` | 8px | 인라인 요소 간격 |
-| `p-3` / `gap-3` | 12px | Nav item 패딩 |
-| `p-4` / `gap-4` | 16px | 카드 내부 패딩 |
-| `p-5` | 20px | 콘텐츠 영역 패딩 (Linear 기준) |
-| `p-6` / `gap-6` | 24px | 페이지 섹션 패딩 |
-| `p-8` / `py-8` | 32px | 페이지 상하단 |
-| `py-16` | 64px | Empty state |
+| 토큰 | 용도 |
+| --- | --- |
+| `--text-2xs` | 메타 라벨, 작은 카운트 |
+| `--text-xs` | 배지, 보조 설명, 리스트 메타 |
+| `--text-sm` | 앱 본문, 버튼, 네비게이션 |
+| `--text-md` | 입력값, 폼 컨트롤 |
+| `--text-title` | 앱 페이지의 agent intro 제목 |
 
 ---
 
-## 보더 반경
+## 다크 앱 팔레트
+
+`(auth)`와 `(admin)` 라우트는 `.dark-app`을 사용합니다.
+
+```css
+.dark-app {
+  --da-bg: rgb(8, 9, 10);
+  --da-sidebar: rgb(11, 12, 13);
+  --da-surface: rgb(13, 14, 15);
+  --da-surface-2: rgb(17, 18, 19);
+
+  --da-border: rgba(255, 255, 255, 0.06);
+  --da-border-row: rgba(255, 255, 255, 0.04);
+
+  --da-text: rgba(255, 255, 255, 0.85);
+  --da-text-2: rgba(255, 255, 255, 0.5);
+  --da-text-3: rgba(255, 255, 255, 0.35);
+  --da-text-hint: rgba(255, 255, 255, 0.3);
+
+  --da-control: rgba(255, 255, 255, 0.04);
+  --da-control-hover: rgba(255, 255, 255, 0.075);
+  --da-control-active: rgba(255, 255, 255, 0.12);
+
+  --da-badge: rgba(255, 255, 255, 0.08);
+  --da-badge-text: rgba(255, 255, 255, 0.5);
+  --da-focus: rgba(255, 255, 255, 0.22);
+
+  --da-accent: rgb(122, 151, 214);
+  --da-accent-dim: rgba(122, 151, 214, 0.14);
+  --da-danger: rgb(248, 113, 113);
+  --da-danger-dim: rgba(248, 113, 113, 0.14);
+}
+```
+
+원칙:
+
+- 기본 UI는 `--da-bg`, `--da-surface`, `--da-surface-2` 세 단계로 구성합니다.
+- 카드와 리스트는 그림자보다 `--da-border`와 `--da-border-row`로 구분합니다.
+- muted cobalt는 작은 상태/디테일 accent로만 사용합니다.
+- AI 보라색 그라데이션, 네온 분석 색상, 장식적인 컬러 면은 피합니다.
+- agent 분석 영역은 거의 흑백/그레이 톤으로 유지합니다.
+
+---
+
+## 랜딩 팔레트
+
+`(public)` 라우트는 `.dark-landing`을 사용합니다.
+
+```css
+.dark-landing {
+  --dl-bg: rgb(8, 9, 10);
+  --dl-card: rgb(15, 16, 17);
+  --dl-panel: rgb(13, 14, 15);
+  --dl-text: rgb(247, 248, 248);
+  --dl-muted: rgb(138, 143, 152);
+  --dl-link: rgb(208, 214, 224);
+  --dl-border: rgba(255, 255, 255, 0.06);
+  --dl-border-nav: rgba(255, 255, 255, 0.08);
+  --dl-accent: rgb(122, 151, 214);
+  --dl-accent-soft: rgba(122, 151, 214, 0.16);
+  --dl-paper: rgb(238, 240, 244);
+  --dl-graphite: rgb(37, 39, 43);
+}
+```
+
+랜딩은 제품 판매보다 “개인 커리어 정리 어시스턴트” 느낌을 우선합니다. 실제 회사명 로고나 과도한 상업적 proof는 사용하지 않습니다.
+앱보다 색상을 조금 더 쓸 수 있지만, saturated AI 보라색 대신 muted cobalt, paper white, graphite, warm gray 중심으로 전문적인 편집 디자인처럼 사용합니다.
+
+---
+
+## 반경과 그림자
 
 ```css
 :root {
-  --radius-xs: 0.1875rem;  /* 3px  — 아주 작은 배지 */
-  --radius-sm: 0.25rem;    /* 4px  — 배지, 태그 */
-  --radius-md: 0.375rem;   /* 6px  — 버튼, 입력창 (Linear 기준) */
-  --radius-lg: 0.5rem;     /* 8px  — 카드 */
-  --radius-xl: 0.75rem;    /* 12px — 패널, 드롭다운 */
-  --radius-2xl:1rem;       /* 16px — 모달 */
-  --radius-full:9999px;    /* 완전한 pill — 알림 배지 */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  --shadow-popover: 0 18px 60px rgba(0, 0, 0, 0.42);
+  --shadow-modal: 0 24px 80px rgba(0, 0, 0, 0.55);
 }
 ```
+
+- 일반 카드와 패널은 `8px` 이하를 기본으로 합니다.
+- 모달과 팝오버만 `12px`를 허용합니다.
+- 페이지 섹션을 큰 카드처럼 감싸지 않습니다.
 
 ---
 
-## 섀도우
-
-Linear 수준의 절제된 섀도우.
+## 모션
 
 ```css
-:root {
-  /* 카드, 인풋 — 거의 보이지 않는 깊이감 */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-
-  /* 카드 hover, 선택 항목 */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04),
-               0 1px 4px rgba(0, 0, 0, 0.06);
-
-  /* 드롭다운, 팝오버 */
-  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.04),
-               0 4px 12px rgba(0, 0, 0, 0.08);
-
-  /* 모달 */
-  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.06),
-               0 12px 32px rgba(0, 0, 0, 0.12);
-
-  /* 토스트 */
-  --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.08),
-               0 24px 48px rgba(0, 0, 0, 0.16);
-}
+--ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
 ```
+
+- 페이지 진입: `agent-page-in`, 420ms.
+- 패널 진입: `agent-reveal`, 520ms.
+- 스캐닝 느낌: `agent-shimmer`, 필요한 로딩/분석 상태에만 사용합니다.
+- `prefers-reduced-motion: reduce`에서는 agent 애니메이션을 끕니다.
 
 ---
 
-## Z-Index
+## 포커스
 
 ```css
-:root {
-  --z-base:           0;
-  --z-raised:         1;   /* 카드 hover */
-  --z-sidebar:       10;
-  --z-topbar:        20;
-  --z-dropdown:      30;
-  --z-tooltip:       35;
-  --z-modal-backdrop:40;
-  --z-modal:         50;
-  --z-toast:         60;
+.ds-focus-ring:focus-visible {
+  outline: 1px solid var(--da-focus);
+  outline-offset: 2px;
 }
 ```
 
----
-
-## 트랜지션
-
-```css
-:root {
-  /* Duration */
-  --duration-instant: 50ms;   /* 버튼 색상 */
-  --duration-fast:   150ms;   /* 드롭다운, 탭 전환 */
-  --duration-normal: 200ms;   /* 모달, 슬라이드 */
-  --duration-slow:   300ms;   /* 페이지 전환 */
-
-  /* Easing */
-  --ease-out:    cubic-bezier(0, 0, 0.2, 1);
-  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);  /* 드롭다운, 모달 */
-  --ease-in:     cubic-bezier(0.4, 0, 1, 1);     /* 요소 사라질 때 */
-}
-```
+키보드 접근성이 필요한 커스텀 버튼, 모달, 컨트롤에는 `ds-focus-ring`을 붙입니다.

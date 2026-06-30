@@ -1,62 +1,31 @@
-# 페이지 라우팅 (Page Routing)
+# 페이지 라우팅
 
-🌐 [English](./routing.md) | **한국어**
+[English](./routing.md) | 🇰🇷 **한국어**
 
-> 핵심 기술: Next.js 15 (App Router), TypeScript
-
----
+> 기술 스택: Next.js App Router, TypeScript, `src/proxy.ts`
 
 ## 라우트 구조
 
 ```
 src/app/
-├── (public)/
-│   ├── page.tsx              → /          랜딩 페이지
-│   ├── login/page.tsx        → /login
-│   └── signup/page.tsx       → /signup
-│
-├── (auth)/                   → JWT 미들웨어 가드
-│   ├── dashboard/page.tsx    → /dashboard
-│   ├── jobs/
-│   │   ├── page.tsx          → /jobs          공고 검색
-│   │   └── [jobId]/page.tsx  → /jobs/:jobId   공고 상세
-│   ├── matches/
-│   │   ├── page.tsx          → /matches
-│   │   └── [matchId]/page.tsx → /matches/:matchId
-│   ├── resume/page.tsx       → /resume
-│   ├── github/page.tsx       → /github
-│   ├── candidate/page.tsx    → /candidate
-│   ├── advisor/page.tsx      → /advisor
-│   ├── notifications/page.tsx → /notifications
-│   └── settings/page.tsx     → /settings
-│
-├── (admin)/                  → ADMIN 역할 필수
-│   └── admin/page.tsx        → /admin
-│
-└── api/
-    └── auth/callback/route.ts → /api/auth/callback
+├── (public)/                  → /, /login, /signup, /privacy, /terms
+├── (auth)/                    → /dashboard, /jobs, /matches, /resume,
+│                                /github, /candidate, /roadmap, /cycles,
+│                                /advisor, /notifications, /settings
+└── (admin)/admin/             → /admin, /admin/users, /admin/jobs, /admin/ai-calls
 ```
 
----
+## 인증 Proxy
 
-## 인증 미들웨어
+`src/proxy.ts`가 앱 라우트를 렌더링 전에 보호합니다.
 
-`middleware.ts`가 `(auth)` · `(admin)` 라우트를 모두 가로챔.
-- HTTP-only 쿠키 `access_token`에서 JWT 읽기
-- 만료 시: `POST /api/v1/auth/reissue` → 새 쿠키 발급 → 계속 진행
-- 재발급 실패 시: `/login?redirect=<원래 경로>` 리다이렉트
-- Admin 라우트: JWT payload에서 `role === 'ADMIN'` 추가 검증
+- 인증 라우트는 HTTP-only `access_token` 쿠키가 필요합니다.
+- 관리자 라우트는 JWT payload를 디코딩해 `role === 'ADMIN'`을 추가로 확인합니다.
+- 토큰이 있는 사용자가 `/login`, `/signup`에 접근하면 `/dashboard`로 이동합니다.
+- 토큰 재발급은 `proxy.ts`가 아니라, API 호출이 401을 받은 뒤 `src/lib/api/client.ts`에서 한 번 재시도합니다.
 
----
+## OAuth 흐름
 
-## OAuth 콜백 흐름
+GitHub 로그인은 백엔드가 담당합니다. 로그인 후 GitHub 계정 연결은 프론트 callback route에서 code를 받은 뒤 백엔드 connect endpoint로 전달합니다.
 
-```
-GitHub 인증 인가 → /api/auth/callback?code=xxx
-  └── POST /api/v1/github/connect { mode: "oauth", code }
-        └── 성공 시 → /github 리다이렉트
-```
-
----
-
-[Wiki 인덱스](README.ko.md) | [상태 관리 ▶](state.ko.md)
+[위키 인덱스](README.ko.md) | [상태 관리 ▶](state.ko.md)

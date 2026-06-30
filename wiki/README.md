@@ -35,7 +35,7 @@ careeros-web talks exclusively to the careerOS REST API (`localhost:8080` in dev
 | Page | Korean | Content |
 |------|--------|---------|
 | [architecture.md](architecture.md) | [한국어](architecture.ko.md) | Layer map, file structure, auth flow, error + loading strategy |
-| [routing.md](routing.md) | [한국어](routing.ko.md) | Route structure, middleware auth, two OAuth flows |
+| [routing.md](routing.md) | [한국어](routing.ko.md) | Route structure, proxy auth, OAuth flows |
 | [state.md](state.md) | [한국어](state.ko.md) | TanStack Query cache keys, Zustand stores, cursor pagination |
 | [api-client.md](api-client.md) | [한국어](api-client.ko.md) | Fetch wrapper, token refresh flow, domain file map |
 | [components.md](components.md) | [한국어](components.ko.md) | 5 core component interfaces and usage |
