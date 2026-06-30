@@ -8,7 +8,7 @@ const columns = [
       { label: "커리어 정리", href: "#matching" },
       { label: "GitHub 해석", href: "/signup" },
       { label: "이력서 메모", href: "/signup" },
-      { label: "AI 어드바이저", href: "/signup" },
+      { label: "COS 어드바이저", href: "/signup" },
     ],
   },
   {

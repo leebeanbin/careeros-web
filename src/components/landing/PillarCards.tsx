@@ -17,8 +17,8 @@ const RadarSvg = (
     />
     <polygon
       points="60,25 85,40 85,60 60,75 35,60 35,40"
-      fill="rgba(99,102,241,0.1)"
-      stroke="rgba(99,102,241,0.4)"
+      fill="rgba(255,255,255,0.06)"
+      stroke="rgba(255,255,255,0.22)"
       strokeWidth="1"
     />
     <line x1="60" y1="10" x2="60" y2="90" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
@@ -27,7 +27,7 @@ const RadarSvg = (
     {[
       [60, 25], [85, 40], [85, 60], [60, 75], [35, 60], [35, 40],
     ].map(([cx, cy]) => (
-      <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="3" fill="rgba(99,102,241,0.8)" />
+      <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="3" fill="rgba(255,255,255,0.62)" />
     ))}
   </svg>
 );
@@ -48,7 +48,7 @@ const GitSvg = (
           width="12"
           height="12"
           rx="2"
-          fill={val > 50 ? "rgba(99,102,241,0.6)" : "rgba(255,255,255,0.06)"}
+          fill={val > 50 ? "rgba(255,255,255,0.34)" : "rgba(255,255,255,0.06)"}
           stroke="rgba(255,255,255,0.08)"
           strokeWidth="0.5"
         />
@@ -68,7 +68,7 @@ const ChatSvg = (
     <rect x="20" y="22" width="60" height="8" rx="2" fill="rgba(255,255,255,0.1)" />
     <rect x="20" y="34" width="80" height="6" rx="2" fill="rgba(255,255,255,0.06)" />
     <rect x="20" y="44" width="70" height="6" rx="2" fill="rgba(255,255,255,0.06)" />
-    <rect x="20" y="54" width="40" height="6" rx="2" fill="rgba(99,102,241,0.4)" />
+    <rect x="20" y="54" width="40" height="6" rx="2" fill="rgba(255,255,255,0.22)" />
     <circle
       cx="30" cy="85" r="6"
       fill="rgba(255,255,255,0.06)"

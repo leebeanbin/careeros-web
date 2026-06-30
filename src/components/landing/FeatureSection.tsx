@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { MarketingButton, MarketingContainer, MarketingHeading, MarketingSection } from "./MarketingPrimitives";
 
 interface FeatureSectionProps {
@@ -40,7 +40,7 @@ export function FeatureSection({
           </div>
         </div>
         <div
-          className="flex min-h-[400px] items-stretch overflow-hidden rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#0D0E0F]"
+          className="cos-scroll-demo flex min-h-[400px] items-stretch overflow-hidden rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#0D0E0F]"
         >
           {illustration}
         </div>
@@ -66,21 +66,36 @@ const matchJobs = [
   { title: "면접 준비", context: "지원 전 점검", score: 68, active: false },
 ];
 
+function scrollDelay(index: number): CSSProperties {
+  return { "--cos-delay": `${index * 90}ms` } as CSSProperties;
+}
+
+function contributionCellStyle(value: number, index: number): CSSProperties {
+  return {
+    "--cos-delay": `${index * 8}ms`,
+    backgroundColor:
+      value > 70 ? "rgba(255,255,255,0.62)"
+      : value > 40 ? "rgba(255,255,255,0.22)"
+      : value > 20 ? "rgba(255,255,255,0.09)"
+      : "rgba(255,255,255,0.06)",
+  } as CSSProperties;
+}
+
 function MatchIllustration() {
   return (
     <div className="flex flex-1 p-8 gap-8">
-      <div className="flex-1 flex flex-col justify-center">
+      <div className="cos-scroll-panel flex-1 flex flex-col justify-center">
         <div className="text-[13px] font-[510] text-[#F7F8F8] mb-1">풀스택 전환 준비</div>
-        <div className="text-[32px] font-[510] text-[#6366f1] mb-6">87점</div>
-        {matchAxes.map((a) => (
-          <div key={a.label} className="mb-4">
+        <div className="text-[32px] font-[510] text-[#E9EDF5] mb-6">87점</div>
+        {matchAxes.map((a, i) => (
+          <div key={a.label} className="cos-scroll-row mb-4" style={scrollDelay(i)}>
             <div className="flex justify-between text-[13px] mb-1">
               <span className="text-[#8A8F98]">{a.label}</span>
               <span className="text-[#F7F8F8] font-[510]">{a.score}</span>
             </div>
             <div className="h-1.5 rounded-full bg-[rgba(255,255,255,0.08)]">
               <div
-                className="h-1.5 rounded-full bg-[#6366f1]"
+                className="cos-scroll-fill h-1.5 rounded-full bg-[#7A97D6]"
                 style={{ width: `${a.score}%` }}
               />
             </div>
@@ -88,21 +103,22 @@ function MatchIllustration() {
         ))}
       </div>
       <div className="w-[1px] bg-[rgba(255,255,255,0.06)]" />
-      <div className="flex-1 flex flex-col justify-center gap-2">
-        {matchJobs.map((item) => (
+      <div className="cos-scroll-panel flex-1 flex flex-col justify-center gap-2">
+        {matchJobs.map((item, i) => (
           <div
             key={item.context}
-            className={`flex items-center justify-between rounded-lg px-4 py-3 text-[13px]
+            className={`cos-scroll-row flex items-center justify-between rounded-lg px-4 py-3 text-[13px]
               ${item.active
-                ? "bg-[rgba(99,102,241,0.1)] border border-[rgba(99,102,241,0.3)]"
+                ? "bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.16)]"
                 : "bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)]"}`}
+            style={scrollDelay(i + 2)}
           >
             <div>
               <div className="text-[#F7F8F8] font-[500]">{item.title}</div>
               <div className="text-[11px] text-[#8A8F98]">{item.context}</div>
             </div>
             <div
-              className={`text-[15px] font-[510] ${item.score >= 80 ? "text-[#22c55e]" : "text-[#eab308]"}`}
+              className={`text-[15px] font-[510] ${item.score >= 80 ? "text-[#E9EDF5]" : "text-[#AEB7C6]"}`}
             >
               {item.score}%
             </div>
@@ -120,7 +136,7 @@ const CONTRIB_GRID = Array.from({ length: 24 }, (_, w) =>
 
 function GitHubIllustration() {
   return (
-    <div className="flex-1 p-8">
+    <div className="cos-scroll-panel flex-1 p-8">
       <div className="text-[13px] font-[510] text-[#F7F8F8] mb-1">leebeanbin</div>
       <div className="text-[11px] text-[#8A8F98] mb-6">342 contributions in the last year</div>
       <div className="flex gap-1">
@@ -129,14 +145,8 @@ function GitHubIllustration() {
             {days.map((val, d) => (
               <div
                 key={d}
-                className="w-3 h-3 rounded-sm"
-                style={{
-                  backgroundColor:
-                    val > 70 ? "rgba(99,102,241,0.8)"
-                    : val > 40 ? "rgba(99,102,241,0.4)"
-                    : val > 20 ? "rgba(99,102,241,0.15)"
-                    : "rgba(255,255,255,0.06)",
-                }}
+                className="cos-scroll-cell w-3 h-3 rounded-sm"
+                style={contributionCellStyle(val, w * 7 + d)}
               />
             ))}
           </div>
@@ -147,10 +157,11 @@ function GitHubIllustration() {
           { label: "총 커밋", value: "1,247" },
           { label: "주요 언어", value: "Java / TS" },
           { label: "공개 레포", value: "23" },
-        ].map((stat) => (
+        ].map((stat, i) => (
           <div
             key={stat.label}
-            className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-lg p-3"
+            className="cos-scroll-row bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-lg p-3"
+            style={scrollDelay(i + 2)}
           >
             <div className="text-[11px] text-[#8A8F98] mb-1">{stat.label}</div>
             <div className="text-[15px] font-[510] text-[#F7F8F8]">{stat.value}</div>
@@ -178,17 +189,17 @@ function AdvisorIllustration() {
     <div className="flex-1 p-8 flex flex-col justify-between">
       <div className="space-y-4">
         {advisorMessages.map((m, i) => (
-          <div key={i} className={`flex gap-3 ${m.role === "user" ? "justify-end" : ""}`}>
+          <div key={i} className={`cos-scroll-message flex gap-3 ${m.role === "user" ? "justify-end" : ""}`} style={scrollDelay(i)}>
             {m.role === "assistant" && (
-              <div className="w-6 h-6 rounded-full bg-[rgba(99,102,241,0.3)] flex items-center justify-center shrink-0 mt-0.5">
-                <span className="text-[10px] text-[#6366f1]">AI</span>
+              <div className="w-6 h-6 rounded-full bg-[rgba(255,255,255,0.16)] flex items-center justify-center shrink-0 mt-0.5">
+                <span className="text-[9px] font-[600] tracking-[-0.02em] text-[#D0D6E0]">COS</span>
               </div>
             )}
             <div
               className={`max-w-[420px] rounded-xl px-4 py-3 text-[13px] leading-[20px]
                 ${m.role === "assistant"
                   ? "bg-[rgba(255,255,255,0.05)] text-[#F7F8F8]"
-                  : "bg-[rgba(99,102,241,0.15)] border border-[rgba(99,102,241,0.3)] text-[#F7F8F8]"}`}
+                  : "bg-[rgba(255,255,255,0.09)] border border-[rgba(255,255,255,0.16)] text-[#F7F8F8]"}`}
             >
               {m.text}
             </div>
@@ -202,8 +213,8 @@ function AdvisorIllustration() {
           className="flex-1 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)]
                      rounded-full px-4 py-2 text-[13px] text-[#8A8F98] outline-none"
         />
-        <div aria-hidden="true" className="w-8 h-8 rounded-full bg-[#6366f1] flex items-center justify-center shrink-0">
-          <span className="text-white text-[12px]">↑</span>
+        <div aria-hidden="true" className="w-8 h-8 rounded-full bg-[#E5E5E6] flex items-center justify-center shrink-0">
+          <span className="text-[#08090A] text-[12px]">↑</span>
         </div>
       </div>
     </div>
@@ -220,19 +231,20 @@ const jobListings = [
 function JobsIllustration() {
   return (
     <div className="flex-1 p-6 space-y-2">
-      {jobListings.map((job) => (
+      {jobListings.map((job, i) => (
         <div
           key={job.title + job.context}
-          className="flex items-center justify-between bg-[rgba(255,255,255,0.03)]
+          className="cos-scroll-row flex items-center justify-between bg-[rgba(255,255,255,0.03)]
                      border border-[rgba(255,255,255,0.06)] rounded-lg px-4 py-3"
+          style={scrollDelay(i)}
         >
           <div className="flex items-center gap-4">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[13px] font-[500] text-[#F7F8F8]">{job.title}</span>
                 {job.isNew && (
-                  <span className="text-[10px] bg-[rgba(99,102,241,0.2)] text-[#818cf8]
-                                   border border-[rgba(99,102,241,0.3)] rounded px-1.5 py-0.5">
+                  <span className="text-[10px] bg-[rgba(255,255,255,0.12)] text-[#d5d7db]
+                                   border border-[rgba(255,255,255,0.16)] rounded px-1.5 py-0.5">
                     NEW
                   </span>
                 )}
@@ -250,7 +262,7 @@ function JobsIllustration() {
               ))}
             </div>
           </div>
-          <div className={`text-[13px] font-[510] ${job.match >= 80 ? "text-[#22c55e]" : "text-[#eab308]"}`}>
+          <div className={`text-[13px] font-[510] ${job.match >= 80 ? "text-[#E9EDF5]" : "text-[#AEB7C6]"}`}>
             {job.match}%
           </div>
         </div>
@@ -266,7 +278,7 @@ export function FeatureSections() {
     <>
       <FeatureSection
         h2={"이력서 한 장에서\n커리어 단서 정리"}
-        description="AI가 이력서의 기술 스택, 경험, 역할 방향을 함께 읽고 지금 어디를 보완하면 좋을지 정리합니다."
+        description="COS가 이력서의 기술 스택, 경험, 역할 방향을 함께 읽고 지금 어디를 보완하면 좋을지 정리합니다."
         actionNumber="1.0"
         actionLabel="정리 시작"
         actionHref="/signup"
@@ -282,7 +294,7 @@ export function FeatureSections() {
         illustration={<GitHubIllustration />}
       />
       <FeatureSection
-        h2={"AI 어드바이저와\n전략 수립"}
+        h2={"COS 어드바이저와\n전략 수립"}
         description="커리어 방향, 이력서 개선, 면접 준비처럼 막히기 쉬운 다음 행동을 대화하듯 제안합니다."
         actionNumber="3.0"
         actionLabel="어드바이저"
