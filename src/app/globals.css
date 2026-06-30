@@ -16,12 +16,12 @@
 }
 
 :root {
-  /* Brand — linear.app accent rgb(99,102,241) 실측 */
-  --color-primary-50:  #eef2ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-500: #6366f1;
-  --color-primary-600: #4f46e5;
-  --color-primary-700: #4338ca;
+  /* CareerOS design system — neutral-first, assistant-led UI */
+  --color-primary-50:  #eef4ff;
+  --color-primary-100: #dbe7ff;
+  --color-primary-500: #7a97d6;
+  --color-primary-600: #607fbd;
+  --color-primary-700: #49679f;
 
   /* Surface (light mode — app shell) */
   --color-surface-subtle: #f9fafb;
@@ -40,6 +40,22 @@
   --background: #ffffff;
   --foreground: #111827;
   --font-pretendard: "Pretendard Variable", "Pretendard", ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+
+  --text-2xs: 11px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-base: 16px;
+  --text-title: 19px;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  --shadow-popover: 0 18px 60px rgba(0, 0, 0, 0.42);
+  --shadow-modal: 0 24px 80px rgba(0, 0, 0, 0.55);
 
   /* Transitions — linear.app 실측 */
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
@@ -62,8 +78,16 @@
   --da-active:      rgba(255, 255, 255, 0.06);
   --da-badge:       rgba(255, 255, 255, 0.08);
   --da-badge-text:  rgba(255, 255, 255, 0.5);
-  --da-accent:      rgb(99, 102, 241);
-  --da-accent-dim:  rgba(99, 102, 241, 0.15);
+  --da-accent:      rgb(122, 151, 214);
+  --da-accent-dim:  rgba(122, 151, 214, 0.14);
+  --da-focus:       rgba(255, 255, 255, 0.22);
+  --da-danger:      rgb(248, 113, 113);
+  --da-danger-dim:  rgba(248, 113, 113, 0.14);
+  --da-warning:     rgba(255, 255, 255, 0.66);
+  --da-success:     rgba(255, 255, 255, 0.82);
+  --da-control:     rgba(255, 255, 255, 0.04);
+  --da-control-hover: rgba(255, 255, 255, 0.075);
+  --da-control-active: rgba(255, 255, 255, 0.12);
 }
 
 /* Dark landing palette — (public)/page.tsx 전용 */
@@ -76,6 +100,26 @@
   --dl-link:       rgb(208, 214, 224);
   --dl-border:     rgba(255, 255, 255, 0.06);
   --dl-border-nav: rgba(255, 255, 255, 0.08);
+  --dl-accent:     rgb(122, 151, 214);
+  --dl-accent-soft: rgba(122, 151, 214, 0.16);
+  --dl-paper:      rgb(238, 240, 244);
+  --dl-graphite:   rgb(37, 39, 43);
+}
+
+.dark-app ::selection,
+.dark-landing ::selection {
+  background: rgba(255, 255, 255, 0.16);
+  color: rgb(247, 248, 248);
+}
+
+.dark-app dialog::backdrop {
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(2px);
+}
+
+.ds-focus-ring:focus-visible {
+  outline: 1px solid var(--da-focus);
+  outline-offset: 2px;
 }
 
 body {
@@ -137,6 +181,104 @@ body {
   }
 }
 
+@keyframes cos-stage-sweep {
+  0% { transform: translateX(-42%); opacity: 0; }
+  18% { opacity: 0.85; }
+  55% { opacity: 0.28; }
+  100% { transform: translateX(92%); opacity: 0; }
+}
+
+@keyframes cos-step-breathe {
+  0%, 100% {
+    border-color: rgba(255, 255, 255, 0.06);
+    background-color: rgba(255, 255, 255, 0.025);
+  }
+  42%, 58% {
+    border-color: rgba(122, 151, 214, 0.22);
+    background-color: rgba(122, 151, 214, 0.075);
+  }
+}
+
+@keyframes cos-dot-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.55; }
+  50% { transform: scale(1.9); opacity: 1; }
+}
+
+@keyframes cos-progress-breathe {
+  0%, 100% {
+    opacity: 0.72;
+    filter: saturate(0.82);
+  }
+  48%, 62% {
+    opacity: 1;
+    filter: saturate(1.08);
+  }
+}
+
+@keyframes cos-card-lift {
+  0%, 100% { background-color: transparent; border-color: transparent; }
+  52%, 66% {
+    background-color: rgba(255, 255, 255, 0.045);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+}
+
+@keyframes cos-signal-glow {
+  0%, 100% { opacity: 0.58; }
+  45%, 60% { opacity: 1; }
+}
+
+@keyframes cos-text-cycle {
+  0%, 100% { color: rgba(208, 214, 224, 0.62); }
+  50% { color: rgb(238, 240, 244); }
+}
+
+@keyframes cos-scroll-rise {
+  from {
+    opacity: 0.28;
+    transform: translateY(14px);
+    filter: blur(1px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes cos-scroll-panel {
+  from {
+    opacity: 0.42;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cos-scroll-fill {
+  from {
+    transform: scaleX(0.24);
+    opacity: 0.44;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes cos-scroll-cell {
+  from {
+    opacity: 0.18;
+    transform: scale(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .dark-app main > * {
   animation: agent-page-in 420ms var(--ease-spring) both;
 }
@@ -189,11 +331,126 @@ body {
   animation: agent-shimmer 1.8s ease-in-out infinite;
 }
 
+.cos-demo-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 0%, rgba(122,151,214,0.12) 42%, rgba(255,255,255,0.08) 50%, transparent 64%);
+  mix-blend-mode: screen;
+  animation: cos-stage-sweep 7.2s ease-in-out infinite;
+}
+
+.cos-flow-step {
+  animation: cos-step-breathe 7.2s ease-in-out infinite;
+  animation-delay: var(--cos-delay, 0s);
+}
+
+.cos-flow-dot {
+  animation: cos-dot-pulse 2.4s ease-in-out infinite;
+  animation-delay: var(--cos-delay, 0s);
+}
+
+.cos-progress,
+.cos-axis-fill {
+  animation: cos-progress-breathe 7.2s ease-in-out infinite;
+  animation-delay: var(--cos-delay, 0s);
+  transform-origin: left center;
+}
+
+.cos-flow-card {
+  animation: cos-card-lift 7.2s ease-in-out infinite;
+}
+
+.cos-signal-row {
+  animation: cos-signal-glow 7.2s ease-in-out infinite;
+  animation-delay: var(--cos-delay, 0s);
+}
+
+.cos-demo-cursor {
+  animation: cos-text-cycle 2.8s ease-in-out infinite;
+}
+
+.cos-nav-pulse,
+.cos-insight-card {
+  animation: cos-step-breathe 7.2s ease-in-out infinite;
+}
+
+.cos-scroll-demo {
+  position: relative;
+}
+
+.cos-scroll-demo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent, rgba(122,151,214,0.08), transparent 58%);
+  opacity: 0;
+}
+
+.cos-scroll-panel,
+.cos-scroll-row,
+.cos-scroll-message,
+.cos-scroll-cell {
+  animation: cos-scroll-rise 720ms var(--ease-spring) both;
+  animation-delay: var(--cos-delay, 0ms);
+}
+
+.cos-scroll-panel {
+  animation-name: cos-scroll-panel;
+}
+
+.cos-scroll-fill {
+  transform-origin: left center;
+  animation: cos-scroll-fill 900ms var(--ease-spring) both;
+  animation-delay: var(--cos-delay, 0ms);
+}
+
+.cos-scroll-cell {
+  animation-name: cos-scroll-cell;
+  transform-origin: center;
+}
+
+@supports (animation-timeline: view()) {
+  .cos-scroll-panel,
+  .cos-scroll-row,
+  .cos-scroll-message,
+  .cos-scroll-cell,
+  .cos-scroll-fill {
+    animation-delay: var(--cos-delay, 0ms);
+    animation-timeline: view();
+    animation-range: entry 12% cover 38%;
+  }
+
+  .cos-scroll-demo::after {
+    animation: cos-stage-sweep 1s linear both;
+    animation-timeline: view();
+    animation-range: entry 5% cover 50%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dark-app main > *,
   .agent-reveal,
   .agent-dot,
-  .agent-shimmer::after {
+  .agent-shimmer::after,
+  .cos-demo-stage::after,
+  .cos-flow-step,
+  .cos-flow-dot,
+  .cos-progress,
+  .cos-axis-fill,
+  .cos-flow-card,
+  .cos-signal-row,
+  .cos-demo-cursor,
+  .cos-nav-pulse,
+  .cos-insight-card,
+  .cos-scroll-demo::after,
+  .cos-scroll-panel,
+  .cos-scroll-row,
+  .cos-scroll-message,
+  .cos-scroll-cell,
+  .cos-scroll-fill {
     animation: none;
   }
 }

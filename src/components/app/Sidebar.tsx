@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { listNotifications } from '@/lib/api/notifications'
-import { getMe } from '@/lib/api/users'
 import type { CSSProperties, ReactNode } from 'react'
 import { LogoWordmark } from '@/components/brand/Logo'
 
@@ -165,7 +164,7 @@ const NAV_MAIN = [
   { href: '/candidate',  label: '경력 그래프', icon: <GraphIcon /> },
   { href: '/roadmap',    label: '로드맵',      icon: <RoadmapIcon /> },
   { href: '/cycles',     label: '지원 사이클', icon: <CyclesIcon /> },
-  { href: '/advisor',    label: 'AI 어드바이저', icon: <AdvisorIcon /> },
+  { href: '/advisor',    label: 'COS 어드바이저', icon: <AdvisorIcon /> },
 ]
 
 const NAV_SUB = [
@@ -182,13 +181,7 @@ export default function SidebarContent() {
     queryFn: () => listNotifications({ size: 1, unreadOnly: true }),
     staleTime: 60_000,
   })
-  const unreadCount = (notifPage as { totalCount?: number } | undefined)?.totalCount ?? 0
-
-  const { data: me } = useQuery({
-    queryKey: ['users', 'me'],
-    queryFn: getMe,
-    staleTime: 300_000,
-  })
+  const unreadCount = notifPage?.totalElements ?? notifPage?.totalCount ?? notifPage?.content.length ?? 0
 
   const isActive = (href: string) =>
     href === '/dashboard' ? pathname === href : pathname.startsWith(href)
@@ -209,12 +202,8 @@ export default function SidebarContent() {
             <LogoWordmark
               size={20}
               textClassName="text-[13px] font-medium text-[rgba(255,255,255,0.9)]"
+              showSubtitle
             />
-            {me?.name && (
-              <span style={{ marginLeft: '28px', fontSize: '11px', fontWeight: 400, color: 'rgba(255,255,255,0.4)', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {me.name}
-              </span>
-            )}
           </div>
         </div>
         <button
