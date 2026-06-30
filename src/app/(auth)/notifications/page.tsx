@@ -90,17 +90,17 @@ export default function NotificationsPage() {
               padding: '12px 24px',
               borderBottom: '1px solid rgba(255,255,255,0.04)',
               cursor: n.targetUrl ? 'pointer' : 'default',
-              backgroundColor: n.isRead ? 'transparent' : 'rgba(99,102,241,0.04)',
+              backgroundColor: n.isRead ? 'transparent' : 'rgba(255,255,255,0.035)',
               transition: 'background-color 0.1s',
             }}
             onClick={() => handleClick(n)}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = n.isRead ? 'transparent' : 'rgba(99,102,241,0.04)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = n.isRead ? 'transparent' : 'rgba(255,255,255,0.035)')}
           >
             {/* Unread dot */}
             <div style={{
               width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0,
-              backgroundColor: n.isRead ? 'transparent' : 'rgb(99,102,241)',
+              backgroundColor: n.isRead ? 'transparent' : 'rgba(255,255,255,0.78)',
             }} />
 
             <div style={{ flex: 1, overflow: 'hidden' }}>

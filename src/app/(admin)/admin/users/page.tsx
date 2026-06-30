@@ -10,9 +10,9 @@ import { AgentIntro } from '@/components/app/AgentPrimitives'
 
 function Badge({ children, variant }: { children: React.ReactNode; variant: 'green' | 'red' | 'indigo' | 'gray' }) {
   const colors = {
-    green:  { backgroundColor: 'rgba(34,197,94,0.12)',  color: 'rgb(34,197,94)' },
+    green:  { backgroundColor: 'rgba(255,255,255,0.08)',  color: 'rgba(255,255,255,0.78)' },
     red:    { backgroundColor: 'rgba(255,99,99,0.12)',   color: 'rgba(255,99,99,0.8)' },
-    indigo: { backgroundColor: 'rgba(99,102,241,0.12)', color: 'rgb(99,102,241)' },
+    indigo: { backgroundColor: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.84)' },
     gray:   { backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' },
   }
   return (
@@ -102,9 +102,9 @@ function AdminUsersPageContent() {
             style={{
               height: '26px', padding: '0 10px',
               borderRadius: '4px', fontSize: '12px', cursor: 'pointer',
-              border: status === s ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.1)',
-              backgroundColor: status === s ? 'rgba(99,102,241,0.12)' : 'transparent',
-              color: status === s ? 'rgb(99,102,241)' : 'rgba(255,255,255,0.5)',
+              border: status === s ? '1px solid rgba(255,255,255,0.22)' : '1px solid rgba(255,255,255,0.1)',
+              backgroundColor: status === s ? 'rgba(255,255,255,0.1)' : 'transparent',
+              color: status === s ? 'rgba(255,255,255,0.86)' : 'rgba(255,255,255,0.5)',
             }}
           >
             {s === '' ? '전체' : s === 'ACTIVE' ? '활성' : '정지'}
@@ -132,9 +132,10 @@ function AdminUsersPageContent() {
               {/* Avatar */}
               <div style={{
                 width: '28px', height: '28px', borderRadius: '50%',
-                backgroundColor: 'rgb(99,102,241)',
+                backgroundColor: 'rgba(255,255,255,0.16)',
+                border: '1px solid rgba(255,255,255,0.08)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '11px', fontWeight: 700, color: 'white', flexShrink: 0,
+                fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.86)', flexShrink: 0,
               }}>
                 {u.name.charAt(0).toUpperCase()}
               </div>

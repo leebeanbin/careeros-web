@@ -9,8 +9,8 @@ function StatusBadge({ status }: { status: string }) {
   const completed = status === 'COMPLETED'
   return (
     <span style={{
-      backgroundColor: completed ? 'rgba(34,197,94,0.12)' : 'rgba(99,102,241,0.12)',
-      color: completed ? 'rgb(34,197,94)' : 'rgb(99,102,241)',
+      backgroundColor: completed ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.08)',
+      color: completed ? 'rgb(34,197,94)' : 'rgba(255,255,255,0.82)',
       borderRadius: '10px',
       fontSize: '11px',
       fontWeight: 500,
@@ -78,9 +78,9 @@ export default function AdvisorReportPage() {
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
           }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                 style={{ animation: 'spin 1s linear infinite', color: 'rgb(99,102,241)' }}>
-              <circle cx="12" cy="12" r="10" stroke="rgba(99,102,241,0.2)" strokeWidth="2"/>
-              <path d="M12 2a10 10 0 0 1 10 10" stroke="rgb(99,102,241)" strokeWidth="2" strokeLinecap="round"/>
+                 style={{ animation: 'spin 1s linear infinite', color: 'rgba(255,255,255,0.82)' }}>
+              <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.12)" strokeWidth="2"/>
+              <path d="M12 2a10 10 0 0 1 10 10" stroke="rgba(255,255,255,0.82)" strokeWidth="2" strokeLinecap="round"/>
             </svg>
             <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
               AI가 분석 중입니다... 잠시만 기다려주세요

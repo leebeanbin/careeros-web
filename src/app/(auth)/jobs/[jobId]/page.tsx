@@ -261,9 +261,9 @@ export default function JobDetailPage() {
               style={{
                 height: '32px', width: '100%',
                 borderRadius: '6px', fontSize: '13px', cursor: savePending ? 'not-allowed' : 'pointer',
-                backgroundColor: job.isSaved ? 'rgba(99,102,241,0.12)' : 'transparent',
-                border: job.isSaved ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(255,255,255,0.15)',
-                color: job.isSaved ? 'rgb(99,102,241)' : 'rgba(255,255,255,0.6)',
+                backgroundColor: job.isSaved ? 'rgba(255,255,255,0.08)' : 'transparent',
+                border: job.isSaved ? '1px solid rgba(255,255,255,0.16)' : '1px solid rgba(255,255,255,0.15)',
+                color: job.isSaved ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.6)',
                 opacity: savePending ? 0.5 : 1,
               }}
             >

@@ -308,7 +308,7 @@ export default function MatchDetailPage() {
                 <div style={{ flex: 1, height: '2px', borderRadius: '2px', backgroundColor: 'rgba(255,255,255,0.08)' }}>
                   <div style={{
                     height: '2px', borderRadius: '2px',
-                    backgroundColor: 'rgb(99,102,241)',
+                    backgroundColor: 'rgba(255,255,255,0.82)',
                     width: `${match[a.key]}%`,
                     transition: 'width 0.4s ease',
                   }} />
@@ -343,7 +343,7 @@ export default function MatchDetailPage() {
               style={{
                 display: 'flex', justifyContent: 'center', alignItems: 'center',
                 height: '34px', borderRadius: '6px',
-                backgroundColor: 'rgb(99,102,241)',
+                backgroundColor: 'rgba(255,255,255,0.82)',
                 fontSize: '13px', fontWeight: 500, color: 'white',
                 textDecoration: 'none', marginTop: '8px',
                 transition: 'opacity 0.1s',

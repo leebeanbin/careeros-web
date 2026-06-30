@@ -225,7 +225,7 @@ function MatchesPageContent() {
             style={{
               height: '100%', padding: '0 16px',
               background: 'none', border: 'none',
-              borderBottom: tab === t.value ? '2px solid rgb(99,102,241)' : '2px solid transparent',
+              borderBottom: tab === t.value ? '2px solid rgba(255,255,255,0.75)' : '2px solid transparent',
               color: tab === t.value ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)',
               fontSize: '13px', fontWeight: tab === t.value ? 500 : 400,
               cursor: 'pointer', transition: 'color 0.1s',

@@ -12,10 +12,10 @@ const now = new Date()
 const TODAY_X = now.getMonth() * COL_W + Math.round((now.getDate() / 30) * COL_W)
 
 function scoreColor(score: number): string {
-  if (score >= 80) return 'rgb(34,197,94)'
-  if (score >= 65) return 'rgb(234,179,8)'
-  if (score >= 50) return 'rgb(99,102,241)'
-  return 'rgb(138,143,152)'
+  if (score >= 80) return 'rgba(255,255,255,0.82)'
+  if (score >= 65) return 'rgba(255,255,255,0.66)'
+  if (score >= 50) return 'rgba(255,255,255,0.54)'
+  return 'rgba(255,255,255,0.36)'
 }
 
 function getBarLeft(postedAt: string): number {
@@ -24,9 +24,9 @@ function getBarLeft(postedAt: string): number {
 }
 
 function getStage(score: number) {
-  if (score >= 85) return { label: '지원 준비', color: 'rgb(34,197,94)' }
-  if (score >= 70) return { label: '보완 후 지원', color: 'rgb(234,179,8)' }
-  return { label: '탐색 유지', color: 'rgb(138,143,152)' }
+  if (score >= 85) return { label: '지원 준비', color: 'rgba(255,255,255,0.82)' }
+  if (score >= 70) return { label: '보완 후 지원', color: 'rgba(255,255,255,0.66)' }
+  return { label: '탐색 유지', color: 'rgba(255,255,255,0.42)' }
 }
 
 function ScoreBadge({ score }: { score: number }) {
@@ -153,7 +153,7 @@ export default function RoadmapPage() {
                   width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left',
                   height: '52px', display: 'flex', alignItems: 'center', gap: '8px',
                   padding: '0 16px', borderBottom: '1px solid rgba(255,255,255,0.04)',
-                  backgroundColor: active ? 'rgba(99,102,241,0.12)' : 'transparent',
+                  backgroundColor: active ? 'rgba(255,255,255,0.08)' : 'transparent',
                 }}>
                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />
                   <span style={{ fontSize: '13px', color: 'rgb(247,248,248)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -212,18 +212,18 @@ export default function RoadmapPage() {
                       <div style={{
                         position: 'absolute', left: `${barLeft}px`, width: `${barWidth}px`,
                         height: '28px', borderRadius: '6px',
-                        backgroundColor: `${color}CC`, overflow: 'hidden',
+                        backgroundColor: color, overflow: 'hidden',
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         boxShadow: selectedMatch?.matchId === m.matchId ? `0 0 0 2px ${color}55` : 'none',
                       }}>
                         <span style={{
                           position: 'relative', fontSize: '11px', fontWeight: 500,
-                          color: '#fff', paddingLeft: '10px',
+                          color: 'rgb(8,9,10)', paddingLeft: '10px',
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         }}>
                           {m.job.title}
                         </span>
-                        <span style={{ fontSize: '10px', color: '#fff', opacity: 0.86, paddingRight: '10px', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: '10px', color: 'rgb(8,9,10)', opacity: 0.86, paddingRight: '10px', whiteSpace: 'nowrap' }}>
                           {stage.label}
                         </span>
                       </div>
@@ -235,13 +235,13 @@ export default function RoadmapPage() {
                 <div style={{
                   position: 'absolute', top: 0, bottom: 0,
                   left: `${TODAY_X}px`, width: '1px',
-                  backgroundColor: 'rgb(96,121,241)', opacity: 0.7,
+                  backgroundColor: 'rgba(255,255,255,0.42)', opacity: 0.7,
                   pointerEvents: 'none',
                 }}>
                   <div style={{
                     position: 'absolute', top: '-4px', left: '-3px',
                     width: '7px', height: '7px', borderRadius: '50%',
-                    backgroundColor: 'rgb(96,121,241)',
+                    backgroundColor: 'rgba(255,255,255,0.62)',
                   }} />
                 </div>
               </div>

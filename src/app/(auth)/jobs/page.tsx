@@ -15,13 +15,13 @@ import { useToastStore } from '@/stores/toastStore'
 import { AgentIntro, AgentStatusStrip } from '@/components/app/AgentPrimitives'
 
 const ROLE_COLORS: Record<string, string> = {
-  BACKEND:  'rgb(59,130,246)',
-  FRONTEND: 'rgb(139,92,246)',
-  FULLSTACK:'rgb(99,102,241)',
-  DATA:     'rgb(34,197,94)',
-  AI:       'rgb(234,179,8)',
-  DEVOPS:   'rgb(20,184,166)',
-  MOBILE:   'rgb(236,72,153)',
+  BACKEND:  'rgba(255,255,255,0.72)',
+  FRONTEND: 'rgba(255,255,255,0.64)',
+  FULLSTACK:'rgba(255,255,255,0.82)',
+  DATA:     'rgba(255,255,255,0.58)',
+  AI:       'rgba(255,255,255,0.68)',
+  DEVOPS:   'rgba(255,255,255,0.62)',
+  MOBILE:   'rgba(255,255,255,0.6)',
 }
 
 const JOB_GROUPS = [
@@ -51,6 +51,7 @@ function JobsPageContent() {
   const keyword = searchParams.get('keyword') ?? ''
   const roleCategory = searchParams.get('roleCategory') ?? ''
   const remoteType = searchParams.get('remoteType') ?? ''
+  const employmentType = searchParams.get('employmentType') ?? ''
   const showFilters = searchParams.get('filters') === 'open'
   const group = searchParams.get('group') ?? 'none'
   const view = searchParams.get('view') ?? 'comfortable'
@@ -103,6 +104,7 @@ function JobsPageContent() {
     keyword: keyword || undefined,
     roleCategory: roleCategory || undefined,
     remoteType: remoteType || undefined,
+    employmentType: employmentType || undefined,
     size: 100,
   }
 
@@ -156,9 +158,9 @@ function JobsPageContent() {
       <button
         onClick={(e) => { e.stopPropagation(); toggleSave({ jobId: job.jobId, saved: job.isSaved }) }}
         style={{
-          backgroundColor: job.isSaved ? 'rgba(99,102,241,0.12)' : 'transparent',
-          border: job.isSaved ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(255,255,255,0.1)',
-          color: job.isSaved ? 'rgb(99,102,241)' : 'rgba(255,255,255,0.4)',
+          backgroundColor: job.isSaved ? 'rgba(255,255,255,0.105)' : 'transparent',
+          border: job.isSaved ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(255,255,255,0.1)',
+          color: job.isSaved ? 'rgba(255,255,255,0.84)' : 'rgba(255,255,255,0.4)',
           borderRadius: '4px', height: '22px', padding: '0 8px', fontSize: '11px',
           cursor: 'pointer', flexShrink: 0,
         }}
@@ -188,6 +190,7 @@ function JobsPageContent() {
             { label: '검색어', value: keyword || '전체', tone: keyword ? 'indigo' : 'muted' },
             { label: '직무', value: roleCategory || '전체', tone: roleCategory ? 'green' : 'muted' },
             { label: '근무형태', value: remoteType ? REMOTE_LABELS[remoteType] ?? remoteType : '전체', tone: remoteType ? 'amber' : 'muted' },
+            { label: '고용형태', value: employmentType || '전체', tone: employmentType ? 'amber' : 'muted' },
           ]}
         />
       </div>
@@ -239,7 +242,7 @@ function JobsPageContent() {
             style={{
               height: '36px', padding: '0 4px', marginRight: '16px',
               background: 'none', border: 'none',
-              borderBottom: tab === t.value ? '2px solid rgb(99,102,241)' : '2px solid transparent',
+              borderBottom: tab === t.value ? '2px solid rgba(255,255,255,0.75)' : '2px solid transparent',
               color: tab === t.value ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)',
               fontSize: '13px', cursor: 'pointer',
             }}
@@ -274,7 +277,17 @@ function JobsPageContent() {
             <option value="HYBRID">하이브리드</option>
             <option value="ON_SITE">오프사이트</option>
           </select>
-          {(keyword || roleCategory || remoteType) && (
+          <select
+            value={employmentType}
+            onChange={(e) => setParam('employmentType', e.target.value)}
+            style={{ ...filterInput, appearance: 'none' as const }}
+          >
+            <option value="">고용형태 전체</option>
+            <option value="FULL_TIME">정규직</option>
+            <option value="PART_TIME">파트타임</option>
+            <option value="CONTRACT">계약직</option>
+          </select>
+          {(keyword || roleCategory || remoteType || employmentType) && (
             <button
               onClick={() => router.push('/jobs')}
               style={{
@@ -319,11 +332,12 @@ function JobsPageContent() {
           />
         ) : (
           <CursorList<JobDto>
-            queryKey={['jobs', { keyword, roleCategory, remoteType }]}
+            queryKey={['jobs', { keyword, roleCategory, remoteType, employmentType }]}
             fetcher={(cursor) => listJobs({
               keyword: keyword || undefined,
               roleCategory: roleCategory || undefined,
               remoteType: remoteType || undefined,
+              employmentType: employmentType || undefined,
               cursor, size: 30,
             })}
             renderItem={renderJob}

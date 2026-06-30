@@ -100,7 +100,7 @@ export default function SignupPage() {
 
         <p style={{ marginTop: '24px', textAlign: 'center', fontSize: '13px', color: 'rgb(138,143,152)', margin: '24px 0 0' }}>
           이미 계정이 있으신가요?{' '}
-          <Link href="/login" style={{ color: 'rgb(99,102,241)', textDecoration: 'none', fontWeight: 500 }}>
+          <Link href="/login" style={{ color: 'rgba(255,255,255,0.82)', textDecoration: 'none', fontWeight: 500 }}>
             로그인
           </Link>
         </p>

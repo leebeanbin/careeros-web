@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import {
-  connectGitHub, getGitHubProfile, disconnectGitHub, syncGitHub, getSyncStatus, listRepos, toggleRepoIncluded,
+  connectGitHub, getConnectionStatus, disconnectGitHub, syncGitHub, getSyncStatus, listRepos, toggleRepoIncluded,
 } from '@/lib/api/github'
 import type { GitHubRepo } from '@/lib/api/types'
 import CursorList from '@/components/ui/CursorList'
@@ -39,7 +39,7 @@ export default function GitHubPage() {
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['github', 'connection'],
-    queryFn: getGitHubProfile,
+    queryFn: getConnectionStatus,
     retry: false,
   })
 
@@ -102,7 +102,7 @@ export default function GitHubPage() {
         />
         {profileLoading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
-            <Spinner size="lg" className="text-indigo-400" />
+            <Spinner size="lg" className="text-neutral-300" />
           </div>
         ) : !profile ? (
           /* Connect form */
@@ -148,7 +148,7 @@ export default function GitHubPage() {
                   ) : (
                     <div style={{
                       width: '40px', height: '40px', borderRadius: '50%',
-                      backgroundColor: 'rgb(99,102,241)',
+                      backgroundColor: 'rgba(255,255,255,0.82)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '16px', fontWeight: 700, color: 'white',
                     }}>{profile.username[0].toUpperCase()}</div>
@@ -225,7 +225,7 @@ export default function GitHubPage() {
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}>
                     <a href={repo.url} target="_blank" rel="noopener noreferrer" style={{
-                      flex: 1, fontSize: '13px', color: 'rgb(99,102,241)',
+                      flex: 1, fontSize: '13px', color: 'rgba(255,255,255,0.82)',
                       textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>{repo.name}</a>
                     {repo.description && (
@@ -253,7 +253,7 @@ export default function GitHubPage() {
                         style={{
                           width: '34px', height: '18px', borderRadius: '9px',
                           border: 'none', cursor: 'pointer', position: 'relative',
-                          backgroundColor: repo.included ? 'rgb(99,102,241)' : 'rgba(255,255,255,0.12)',
+                          backgroundColor: repo.included ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.12)',
                           transition: 'background-color 0.15s',
                         }}
                       >

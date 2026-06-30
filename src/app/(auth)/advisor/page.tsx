@@ -11,8 +11,8 @@ function StatusBadge({ status }: { status: string }) {
   const completed = status === 'COMPLETED'
   return (
     <span style={{
-      backgroundColor: completed ? 'rgba(34,197,94,0.12)' : 'rgba(99,102,241,0.12)',
-      color: completed ? 'rgb(34,197,94)' : 'rgb(99,102,241)',
+      backgroundColor: completed ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.08)',
+      color: completed ? 'rgb(34,197,94)' : 'rgba(255,255,255,0.82)',
       borderRadius: '10px',
       fontSize: '11px',
       fontWeight: 500,
@@ -57,7 +57,7 @@ export default function AdvisorPage() {
           <div style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.88)' }}>AI 어드바이저</div>
           <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>이력서 분석, 레이아웃 리뷰, 매칭 흐름을 종합한 보고서를 생성합니다.</div>
         </div>
-        <span style={{ fontSize: '11px', color: isPending ? 'rgb(129,140,248)' : 'rgba(255,255,255,0.32)' }}>
+        <span style={{ fontSize: '11px', color: isPending ? 'rgba(255,255,255,0.62)' : 'rgba(255,255,255,0.32)' }}>
           {isPending ? '보고서 작성 중...' : '대기 중'}
         </span>
       </div>
@@ -87,7 +87,7 @@ export default function AdvisorPage() {
         {dashboard?.recentReport && (
           <AgentPanel style={{
             display: 'grid', gridTemplateColumns: '1fr auto', gap: '16px', alignItems: 'center',
-            backgroundColor: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.22)',
+            backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
             padding: '16px', marginBottom: '16px',
           }}>
             <div>

@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useRouter } from 'next/navigation'
 import { getMe, updateMe, deleteMe } from '@/lib/api/users'
 import { logout } from '@/lib/api/auth'
@@ -276,24 +276,27 @@ function PreferencesSection() {
     queryFn: listRoles,
   })
 
-  const { setValue, watch } = useForm<CandidatePreferences>({
+  const { control, setValue } = useForm<CandidatePreferences>({
     values: prefs ? {
       preferredRoles: prefs.preferredRoles || [],
       preferredCountries: prefs.preferredCountries || [],
-      remoteType: prefs.remoteType,
+      remoteTypes: prefs.remoteTypes || [],
+      employmentTypes: prefs.employmentTypes || [],
       relocationPossible: prefs.relocationPossible,
     } : {
       preferredRoles: [],
       preferredCountries: [],
-      remoteType: null,
+      remoteTypes: [],
+      employmentTypes: [],
       relocationPossible: false,
     }
   })
 
-  const preferredRoles = watch('preferredRoles') || []
-  const preferredCountries = watch('preferredCountries') || []
-  const remoteType = watch('remoteType')
-  const relocationPossible = watch('relocationPossible')
+  const preferredRoles = useWatch({ control, name: 'preferredRoles' }) || []
+  const preferredCountries = useWatch({ control, name: 'preferredCountries' }) || []
+  const remoteTypes = useWatch({ control, name: 'remoteTypes' }) || []
+  const employmentTypes = useWatch({ control, name: 'employmentTypes' }) || []
+  const relocationPossible = useWatch({ control, name: 'relocationPossible' })
 
   const [countryInput, setCountryInput] = useState('')
 
@@ -307,7 +310,7 @@ function PreferencesSection() {
   })
 
   const handleSave = () => {
-    save({ preferredRoles, preferredCountries, remoteType: remoteType as CandidatePreferences['remoteType'], relocationPossible })
+    save({ preferredRoles, preferredCountries, remoteTypes, employmentTypes, relocationPossible })
   }
 
   const toggleRole = (code: string) => {
@@ -329,8 +332,12 @@ function PreferencesSection() {
     setValue('preferredCountries', preferredCountries.filter((x) => x !== c), { shouldDirty: true })
   }
 
-  const toggleRemote = (value: CandidatePreferences['remoteType']) => {
-    setValue('remoteType', remoteType === value ? null : value, { shouldDirty: true })
+  const toggleRemote = (value: CandidatePreferences['remoteTypes'][number]) => {
+    setValue(
+      'remoteTypes',
+      remoteTypes.includes(value) ? remoteTypes.filter((item) => item !== value) : [...remoteTypes, value],
+      { shouldDirty: true },
+    )
   }
 
   const chipStyle = (active: boolean): React.CSSProperties => ({
@@ -338,8 +345,8 @@ function PreferencesSection() {
     padding: '4px 10px', borderRadius: '14px', fontSize: '12px',
     fontWeight: 500, cursor: 'pointer', border: 'none',
     transition: 'all 150ms',
-    backgroundColor: active ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.06)',
-    color: active ? 'rgb(129,140,248)' : 'rgba(255,255,255,0.5)',
+    backgroundColor: active ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.06)',
+    color: active ? 'rgba(255,255,255,0.62)' : 'rgba(255,255,255,0.5)',
   })
 
   return (
@@ -422,7 +429,7 @@ function PreferencesSection() {
                 key={opt.value}
                 type="button"
                 onClick={() => toggleRemote(opt.value)}
-                style={chipStyle(remoteType === opt.value)}
+                style={chipStyle(remoteTypes.includes(opt.value))}
               >
                 {opt.label}
               </button>
@@ -437,7 +444,7 @@ function PreferencesSection() {
               type="checkbox"
               checked={relocationPossible}
               onChange={(e) => setValue('relocationPossible', e.target.checked, { shouldDirty: true })}
-              style={{ accentColor: 'rgb(99,102,241)' }}
+              style={{ accentColor: 'rgba(255,255,255,0.82)' }}
             />
             이주 가능
           </label>

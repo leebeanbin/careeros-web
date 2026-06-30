@@ -57,7 +57,7 @@ export default function DashboardPage() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <span style={sl}>최근 매칭</span>
-            <Link href="/matches" style={{ fontSize: '12px', color: 'rgb(99,102,241)', textDecoration: 'none' }}>전체 보기</Link>
+            <Link href="/matches" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.82)', textDecoration: 'none' }}>전체 보기</Link>
           </div>
           <AgentPanel style={{ overflow: 'hidden' }}>
             {!matchesData?.content.length ? (
@@ -110,14 +110,14 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-              <Link href="/advisor" style={{ fontSize: '12px', color: 'rgb(99,102,241)', textDecoration: 'none' }}>어드바이저 보기 →</Link>
+              <Link href="/advisor" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.82)', textDecoration: 'none' }}>어드바이저 보기 →</Link>
             </AgentPanel>
           )}
 
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
               <span style={sl}>읽지 않은 알림</span>
-              <Link href="/notifications" style={{ fontSize: '12px', color: 'rgb(99,102,241)', textDecoration: 'none' }}>전체</Link>
+              <Link href="/notifications" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.82)', textDecoration: 'none' }}>전체</Link>
             </div>
             <AgentPanel delay={140} style={{ overflow: 'hidden' }}>
               {!notifData?.content.length ? (
